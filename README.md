@@ -50,7 +50,7 @@ Install it once (Windows, Linux, Docker, or NixOS) and leave it running; then pl
    - Use the **Deadlock** `.apworld` file, or place the `deadlock` folder in your Archipelago `worlds/` directory (see [Installation](#installation)).
 
 2. **Create your options**
-   - Use the [**Player Options**](https://archipelagobrad.github.io/deadlockipelago/index.html) web page in this repo (`player_options/index.html`) to build a YAML and download it.
+   - Use the [**Player Options**](https://archipelagobrad.github.io/deadlockipelago/index.html) web page to build a YAML and download it.
    - (not recommended) Or in the Archipelago Launcher: **Generate Template Options** → choose **Deadlock** and configure goal type, win counts, and (optionally) starting heroes.
 
 3. **Generate a multiworld**
