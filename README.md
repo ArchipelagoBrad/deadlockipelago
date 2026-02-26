@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./player_options/deadlock-portraits/deadlock_logo.png" alt="Deadlock Archipelago" width="600">
+  <img src="./deadlock-portraits/deadlock_logo.png" alt="Deadlock Archipelago" width="600">
 </p>
 
 An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a meta-progression randomizer where locations are earned by playing matches (hero wins, match milestones, accolades) and items unlock heroes you can use. Complete your goal (e.g. win with N unique characters or N total wins) to finish the seed.
