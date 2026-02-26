@@ -1,0 +1,394 @@
+/* Deadlock Archipelago Player Options — Deadlock branding */
+
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Source+Sans+3:wght@400;500;600&display=swap");
+
+:root {
+  /* Deadlock palette: dark bases, cream text, gold accents */
+  --bg: #0d0f0c;
+  --bg-elevated: #161814;
+  --card-bg: #1a1c18;
+  --card-bg-hover: #22221e;
+  --border: #2f2d28;
+  --border-accent: #3f5d4d;
+  --text: #f4e5ce;
+  --text-muted: #b8a88a;
+  --accent: #e1a655;
+  --accent-hover: #f0c685;
+  --accent-strong: #fcac4d;
+  --success: #72947f;
+  --success-hover: #8bae99;
+  --portrait-bg: #222021;
+  --input-bg: #141612;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(47, 68, 66, 0.25), transparent 50%);
+}
+
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.header-logo {
+  display: block;
+  max-width: 100%;
+  width: 420px;
+  height: auto;
+  margin: 0 0 0.25rem;
+}
+
+.subtitle {
+  margin: 0 0 1rem;
+  font-family: "Cinzel", serif;
+  font-weight: 500;
+  color: var(--accent);
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.intro {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.options-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.card-full {
+  grid-column: 1 / -1;
+}
+
+.card-half.card-left {
+  grid-column: 1;
+}
+
+.card-half.card-right {
+  grid-column: 2;
+}
+
+.actions-full {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 700px) {
+  .options-form {
+    grid-template-columns: 1fr;
+  }
+  .card-half.card-left,
+  .card-half.card-right {
+    grid-column: 1;
+  }
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card h2 {
+  margin: 0 0 1rem;
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field select {
+  width: 100%;
+  max-width: 320px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(225, 166, 85, 0.2);
+}
+
+.field input[type="number"] {
+  max-width: 6rem;
+}
+
+.goal-type-description {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--input-bg);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.field.hidden {
+  display: none;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.checkbox-label input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+.starting-heroes-row {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.hero-slots {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero-slot {
+  position: relative;
+  width: 88px;
+  text-align: center;
+}
+
+.slot-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+/* Portrait aspect 88×119 */
+.slot-portrait {
+  width: 88px;
+  height: 119px;
+  margin: 0 auto;
+  background: var(--portrait-bg);
+  border: 2px solid var(--border-accent);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.slot-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.slot-portrait .placeholder {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+.slot-clear {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slot-clear:hover {
+  color: var(--text);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Centered flex grid: fills rows, last row centered, no trailing whitespace */
+.hero-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.hero-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 88px;
+  flex: 0 0 88px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.3s ease-out, background 0.3s ease-out;
+  background: transparent;
+  overflow: hidden;
+  box-sizing: content-box;
+}
+
+/* Unselected: monotone / greyed out */
+.hero-option .hero-portrait {
+  filter: grayscale(1) brightness(0.75);
+  transition: filter 0.3s ease-out;
+}
+
+.hero-option .hero-name {
+  color: var(--text-muted);
+  opacity: 0.85;
+  transition: color 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.hero-option:hover {
+  border-color: var(--border-accent);
+  background: rgba(47, 68, 66, 0.12);
+}
+
+.hero-option:hover .hero-portrait {
+  filter: grayscale(0.7) brightness(0.85);
+}
+
+/* When Random is selected: no hover effect on hero cards */
+.random-heroes .hero-option:hover {
+  border-color: var(--border);
+  background: transparent;
+}
+.random-heroes .hero-option:hover .hero-portrait {
+  filter: grayscale(1) brightness(0.75);
+}
+
+/* In slot (chosen as one of 3 starting heroes): full color, yellow/gold border */
+.hero-option.in-slot {
+  border-color: var(--accent);
+  background: rgba(225, 166, 85, 0.12);
+}
+
+.hero-option.in-slot .hero-portrait {
+  filter: none;
+}
+
+.hero-option.in-slot .hero-name {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* Portrait size 88×119; border sits directly on portrait (no padding) */
+.hero-option .hero-portrait {
+  width: 88px;
+  height: 119px;
+  background: var(--portrait-bg);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+  flex-shrink: 0;
+}
+
+.hero-option .hero-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-option .hero-name {
+  font-size: 0.65rem;
+  text-align: center;
+  line-height: 1.2;
+  color: var(--text-muted);
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+
+.actions {
+  margin-top: 0.5rem;
+}
+
+.btn {
+  padding: 0.65rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.btn-primary {
+  color: #0d0f0c;
+  background: var(--accent);
+  border: 1px solid var(--accent-strong);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 12px rgba(225, 166, 85, 0.35);
+}

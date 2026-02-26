@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deadlock Player Options</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <img src="deadlock-portraits/deadlock_logo.png" alt="Deadlock" class="header-logo" width="825" height="109">
+      <p class="subtitle">Player Options</p>
+      <p class="intro">Choose the options you would like to play with, and download the YAML file to use in a MultiWorld or solo game.</p>
+    </header>
+
+    <form id="options-form" class="options-form">
+      <!-- Row 1: Player name (full width) -->
+      <section class="card card-full">
+        <h2>Player</h2>
+        <div class="field">
+          <label for="name">Player Name</label>
+          <input type="text" id="name" name="name" maxlength="16" placeholder="Player name (max 16 chars)">
+        </div>
+      </section>
+
+      <!-- Row 2: Starting heroes (full width) -->
+      <section id="starting-heroes-section" class="card card-full">
+        <h2>Starting Heroes</h2>
+        <p class="field-hint">Choose 3 heroes to start with, or use Random to have 3 random heroes selected when you download the YAML.</p>
+        <div class="starting-heroes-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="starting-heroes-random" name="starting_heroes_random">
+            <span>Random (select 3 random heroes on download)</span>
+          </label>
+        </div>
+        <div class="hero-slots" id="hero-slots">
+          <div class="hero-slot" data-slot="0">
+            <span class="slot-label">Hero 1</span>
+            <div class="slot-portrait" id="slot-portrait-0"></div>
+            <button type="button" class="slot-clear" data-slot="0" title="Clear">×</button>
+          </div>
+          <div class="hero-slot" data-slot="1">
+            <span class="slot-label">Hero 2</span>
+            <div class="slot-portrait" id="slot-portrait-1"></div>
+            <button type="button" class="slot-clear" data-slot="1" title="Clear">×</button>
+          </div>
+          <div class="hero-slot" data-slot="2">
+            <span class="slot-label">Hero 3</span>
+            <div class="slot-portrait" id="slot-portrait-2"></div>
+            <button type="button" class="slot-clear" data-slot="2" title="Clear">×</button>
+          </div>
+        </div>
+        <div class="hero-grid" id="hero-grid"></div>
+      </section>
+
+      <!-- Row 3: Game Options (left) | Item & Location Options (right) -->
+      <section class="card card-half card-left">
+        <h2>Game Options</h2>
+
+        <div class="field">
+          <label for="goal_type">Goal Type</label>
+          <select id="goal_type" name="goal_type">
+            <option value="unique_characters" selected>Unique Characters</option>
+            <option value="total_wins">Total Wins</option>
+          </select>
+          <p id="goal_type_description" class="goal-type-description">Win with a set number of different characters. Each character you win a match with counts once toward the goal.</p>
+        </div>
+
+        <div class="field goal-dependent" id="field-unique-characters">
+          <label for="unique_characters_to_win">Unique Characters to Win</label>
+          <input type="number" id="unique_characters_to_win" name="unique_characters_to_win" min="1" max="38" value="10">
+          <span class="field-hint">Number of unique characters you must win with (1–38).</span>
+        </div>
+
+        <div class="field goal-dependent hidden" id="field-total-wins">
+          <label for="total_wins_to_win">Total Wins to Win</label>
+          <input type="number" id="total_wins_to_win" name="total_wins_to_win" min="1" max="100" value="25">
+          <span class="field-hint">Number of total match wins you must achieve (1–100).</span>
+        </div>
+
+      </section>
+
+      <section class="card card-half card-right">
+        <h2>Item & Location Options</h2>
+        <p class="field-hint">Advanced. Leave empty unless you know what you need.</p>
+        <div class="field">
+          <label for="local_items">Local Items (comma-separated)</label>
+          <input type="text" id="local_items" name="local_items" placeholder="[]">
+        </div>
+        <div class="field">
+          <label for="non_local_items">Non-Local Items (comma-separated)</label>
+          <input type="text" id="non_local_items" name="non_local_items" placeholder="[]">
+        </div>
+      </section>
+
+      <div class="actions actions-full">
+        <button type="submit" class="btn btn-primary">Download Options File (.yaml)</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="heroes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
