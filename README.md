@@ -179,4 +179,11 @@ For Archipelago docs, see the [Archipelago documentation](https://github.com/Arc
 
 ---
 
+## Credits
+
+- **ArchipelagoBrad:** Archipelago client integration & logic
+- **Manuel Hexe:** Developing the [unofficial Deadlock API](https://deadlock-api.com/) ([Please support him here!](https://www.patreon.com/manuelhexe))
+
+---
+
 Note: This is a fan-made mod and is not affiliated with or endorsed by Valve or the Deadlock developers.
