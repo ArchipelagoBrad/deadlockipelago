@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import urllib.request
+from urllib.error import HTTPError
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from importlib import resources
@@ -166,6 +167,17 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
 
     try:
         raw = await asyncio.to_thread(_fetch)
+    except HTTPError as e:
+        code = e.code
+        if code == 404:
+            ctx.output("Match not found (404). Double-check that the match ID is correct, or wait 5 minutes to allow the API time to ingest the match.")
+        elif code == 429:
+            ctx.output("API rate limit reached (429). Please try again in an hour — the API allows 5 requests per hour.")
+        elif code == 503:
+            ctx.output("API temporarily unavailable (503). Please wait 5 minutes and try again.")
+        else:
+            ctx.output(f"Failed to fetch match data: HTTP Error {code}: {e.reason}")
+        return
     except Exception as e:
         ctx.output(f"Failed to fetch match data: {e}")
         return

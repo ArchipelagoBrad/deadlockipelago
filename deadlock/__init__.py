@@ -154,7 +154,7 @@ def _register_launcher_component() -> None:
         func=_launch_deadlock_client,
         game_name="Deadlock",
         supports_uri=True,
-        description="Deadlock Archipelago client innit",
+        description="Deadlock Archipelago client. Read the quickstart guide for setup instructions.",
         icon=_register_deadlock_icon(),
     ))
 
