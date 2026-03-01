@@ -63,6 +63,7 @@
           <select id="goal_type" name="goal_type">
             <option value="unique_characters" selected>Unique Characters</option>
             <option value="total_wins">Total Wins</option>
+            <option value="spirits">Spirits (MacGuffin)</option>
           </select>
           <p id="goal_type_description" class="goal-type-description">Win with a set number of different characters. Each character you win a match with counts once toward the goal.</p>
         </div>
@@ -77,6 +78,24 @@
           <label for="total_wins_to_win">Total Wins to Win</label>
           <input type="number" id="total_wins_to_win" name="total_wins_to_win" min="1" max="100" value="25">
           <span class="field-hint">Number of total match wins you must achieve (1–100).</span>
+        </div>
+
+        <div class="field goal-dependent hidden" id="field-spirits">
+          <label for="spirits_to_win">Spirits to Win</label>
+          <div class="spirits-slider-row">
+            <input type="range" id="spirits_to_win" name="spirits_to_win" min="1" max="162" value="10" class="spirits-slider">
+            <output id="spirits_to_win_display" class="spirits-display" aria-live="polite">10 <span class="spirits-percent">(6.2%)</span></output>
+          </div>
+          <span class="field-hint" id="spirits_to_win_hint">Number of Spirits (MacGuffin) you must collect to win. Max 162 (Standard).</span>
+        </div>
+
+        <div class="field">
+          <label for="game_mode">Game Mode</label>
+          <select id="game_mode" name="game_mode">
+            <option value="standard" selected>Standard</option>
+            <option value="street_brawl">Street Brawl</option>
+          </select>
+          <p class="field-hint">Only locations for the selected mode exist in the seed. Use this to add or remove checks per mode.</p>
         </div>
 
       </section>

@@ -11,7 +11,8 @@ from BaseClasses import Item, ItemClassification
 GAME_NAME = "Deadlock"
 
 VICTORY_ITEM_NAME = "Victory"
-FILLER_ITEM_NAME = "Ectoplasm"
+# MacGuffin item: collect X to win when goal type is Spirits; otherwise used as pool filler.
+FILLER_ITEM_NAME = "Spirits"
 
 
 class DeadlockItem(Item):
@@ -58,7 +59,7 @@ def load_items() -> List[ItemDef]:
 
 
 # Internal filler item used to pad itempool to location count when needed.
-FILLER_ITEM_NAME = "Ectoplasm"
+FILLER_ITEM_NAME = "Spirits"
 
 
 def build_item_name_to_id(base_id: int, item_defs: list[ItemDef]) -> dict[str, int]:

@@ -134,26 +134,59 @@
   const goalTypeDesc = document.getElementById("goal_type_description");
   const fieldUnique = document.getElementById("field-unique-characters");
   const fieldTotalWins = document.getElementById("field-total-wins");
+  const fieldSpirits = document.getElementById("field-spirits");
+  const spiritsSlider = document.getElementById("spirits_to_win");
+  const spiritsDisplay = document.getElementById("spirits_to_win_display");
+  const spiritsHint = document.getElementById("spirits_to_win_hint");
+  const gameModeSelect = document.getElementById("game_mode");
+
+  const SPIRITS_MAX_STANDARD = 162;
+  const SPIRITS_MAX_STREET_BRAWL = 143;
+
+  function getSpiritsMax() {
+    return gameModeSelect.value === "street_brawl" ? SPIRITS_MAX_STREET_BRAWL : SPIRITS_MAX_STANDARD;
+  }
+
+  function updateSpiritsDisplay() {
+    const max = getSpiritsMax();
+    const val = Math.min(max, Math.max(1, parseInt(spiritsSlider.value, 10) || 1));
+    spiritsSlider.value = val;
+    const pct = max > 0 ? ((val / max) * 100).toFixed(1) : "0";
+    spiritsDisplay.innerHTML = `${val} <span class="spirits-percent">(${pct}%)</span>`;
+    spiritsHint.textContent = `Number of Spirits (MacGuffin) you must collect to win. Max ${max} (${gameModeSelect.value === "street_brawl" ? "Street Brawl" : "Standard"}).`;
+  }
+
+  function updateSpiritsSliderMax() {
+    const max = getSpiritsMax();
+    spiritsSlider.max = max;
+    const val = parseInt(spiritsSlider.value, 10) || 10;
+    if (val > max) spiritsSlider.value = max;
+    updateSpiritsDisplay();
+  }
 
   const GOAL_DESCRIPTIONS = {
     unique_characters: "Win with a set number of different characters. Each character you win a match with counts once toward the goal.",
     total_wins: "Win a set number of matches in total. Every match win counts toward the goal, regardless of which character you used.",
+    spirits: "Collect a set number of Spirits (MacGuffin items) to win. Spirits are received from the item pool like other items.",
   };
 
   function updateGoalDependentVisibility() {
     const goal = goalTypeSelect.value;
     goalTypeDesc.textContent = GOAL_DESCRIPTIONS[goal] || "";
-    if (goal === "unique_characters") {
-      fieldUnique.classList.remove("hidden");
-      fieldTotalWins.classList.add("hidden");
-    } else {
-      fieldUnique.classList.add("hidden");
-      fieldTotalWins.classList.remove("hidden");
-    }
+    fieldUnique.classList.toggle("hidden", goal !== "unique_characters");
+    fieldTotalWins.classList.toggle("hidden", goal !== "total_wins");
+    fieldSpirits.classList.toggle("hidden", goal !== "spirits");
+    if (goal === "spirits") updateSpiritsSliderMax();
   }
 
   goalTypeSelect.addEventListener("change", updateGoalDependentVisibility);
+  gameModeSelect.addEventListener("change", () => {
+    if (goalTypeSelect.value === "spirits") updateSpiritsSliderMax();
+  });
+  spiritsSlider.addEventListener("input", updateSpiritsDisplay);
+  spiritsSlider.addEventListener("change", updateSpiritsDisplay);
   updateGoalDependentVisibility();
+  updateSpiritsDisplay();
 
   function getStartInventory() {
     if (RANDOM_CHECK.checked) {
@@ -173,8 +206,11 @@
   function buildYaml() {
     const name = (document.getElementById("name").value || "Player").trim().slice(0, 16);
     const goalType = document.getElementById("goal_type").value;
+    const gameMode = document.getElementById("game_mode").value;
     const uniqueNum = Math.min(38, Math.max(1, parseInt(document.getElementById("unique_characters_to_win").value, 10) || 10));
     const totalWinsNum = Math.min(100, Math.max(1, parseInt(document.getElementById("total_wins_to_win").value, 10) || 25));
+    const spiritsMax = getSpiritsMax();
+    const spiritsNum = Math.min(spiritsMax, Math.max(1, parseInt(document.getElementById("spirits_to_win").value, 10) || 10));
     const startInv = getStartInventory();
     const startInvStr = JSON.stringify(startInv);
 
@@ -204,6 +240,7 @@ Deadlock:
   goal_type:
     unique_characters: ${goalType === "unique_characters" ? "50" : "0"}
     total_wins: ${goalType === "total_wins" ? "50" : "0"}
+    spirits: ${goalType === "spirits" ? "50" : "0"}
 
   unique_characters_to_win:
     ${uniqueNum}: 50
@@ -218,6 +255,17 @@ Deadlock:
     random-low: 0
     random-high: 0
     random-range-1-100: 0
+
+  spirits_to_win:
+    ${spiritsNum}: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+    random-range-1-162: 0
+
+  game_mode:
+    standard: ${gameMode === "standard" ? "50" : "0"}
+    street_brawl: ${gameMode === "street_brawl" ? "50" : "0"}
 
   local_items: []
   non_local_items: []

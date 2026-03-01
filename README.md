@@ -2,7 +2,7 @@
   <img src="./deadlock-portraits/deadlock_logo.png" alt="Deadlock Archipelago" width="600">
 </p>
 
-An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a meta-progression randomizer where locations are earned by playing matches (hero wins, match milestones, accolades) and items unlock heroes you can use. Complete your goal (e.g. win with N unique characters or N total wins) to finish the seed.
+An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a meta-progression randomizer where locations are earned by playing matches (hero wins, match milestones, accolades) and items unlock heroes you can use. Complete your goal (e.g. win with N unique characters, N total wins, or collect N **Spirits** as a MacGuffin) to finish the seed. Supports **Standard** and **Street Brawl** game modes with mode-specific checks.
 
 ---
 
@@ -51,7 +51,7 @@ Install it once (Windows, Linux, Docker, or NixOS) and leave it running; then pl
 
 2. **Create your options**
    - Use the [**Player Options**](https://archipelagobrad.github.io/deadlockipelago/index.html) web page to build a YAML and download it.
-   - (not recommended) Or in the Archipelago Launcher: **Generate Template Options** → choose **Deadlock** and configure goal type, win counts, and (optionally) starting heroes.
+   - (not recommended) Or in the Archipelago Launcher: **Generate Template Options** → choose **Deadlock** and configure goal type, win counts, **game mode** (Standard or Street Brawl), and (optionally) starting heroes.
 
 3. **Generate a multiworld**
    - Create a new multiworld (solo or with others), add **Deadlock** with your options, and generate the seed. Note the **room connection details** (server, port, password/slot).
@@ -102,9 +102,11 @@ Install it once (Windows, Linux, Docker, or NixOS) and leave it running; then pl
 
 | Option | Description |
 |--------|-------------|
-| **Goal Type** | **Unique Characters** - win with N different heroes; **Total Wins** - win N matches total. |
+| **Goal Type** | **Unique Characters** - win with N different heroes; **Total Wins** - win N matches total; **Spirits (MacGuffin)** - collect N Spirits to win. |
 | **Unique Characters to Win** | Number of unique heroes you must win with (1–38). Used when Goal Type is Unique Characters. |
 | **Total Wins to Win** | Number of total match wins required (1–100). Used when Goal Type is Total Wins. |
+| **Spirits to Win** | Number of Spirits you must collect to win (1–162 Standard, 1–143 Street Brawl). Used when Goal Type is Spirits. Shown as a slider with percentage on the Player Options page. |
+| **Game Mode** | **Standard** or **Street Brawl**. Only locations for the selected mode exist in the seed. Street Brawl has fewer, tuned-down checks and its own set of Street Brawl–only locations. |
 | **Starting Heroes** | Optional: choose 3 starting heroes or “Random” so 3 are chosen when generating the YAML. |
 
 Additional Archipelago options (e.g. Local Items, Non-Local Items) can be set in the template or in the player options YAML as needed.
@@ -115,34 +117,41 @@ Additional Archipelago options (e.g. Local Items, Non-Local Items) can be set in
 
 ### Items
 
-All items are **progression** items that unlock playable heroes:
+- **Unlock [Hero]** - One item per hero (e.g. Unlock Abrams, Unlock Seven, Unlock Wraith). You receive these from the multiworld; each one allows you to **pick that hero** in Deadlock. You must have unlocked a hero before you can submit a match played as them and earn the corresponding “Win a game as [Hero]” locations. There are **38 hero-unlock items**.
 
-- **Unlock [Hero]** - One item per hero (e.g. Unlock Abrams, Unlock Seven, Unlock Wraith). You receive these from the multiworld; each one allows you to **pick that hero** in Deadlock. You must have unlocked a hero before you can submit a match played as them and earn the corresponding “Win a game as [Hero]” locations.
+- **Spirits** - MacGuffin/filler item used to pad the pool. When your **Goal Type** is **Spirits**, you win by collecting the configured number of Spirits (e.g. 10, 50, or a percentage of the pool). Spirits are received like any other item from checks. The maximum Spirits to Win depends on game mode: 162 (Standard) or 143 (Street Brawl).
 
-There are **38 hero-unlock items**. The pool is padded with filler items so the number of items matches the number of locations. The **Goal** location is locked to a victory item that is checked when you meet your win condition.
+The pool is padded with Spirits so the number of items matches the number of locations. The **Goal** location is locked to a victory item; when your goal is Spirits, the client still sends the Goal check once you have collected enough Spirits.
 
 ### Locations
 
-Locations are checked by the client when you submit matches (`/submit_match <match_id>`). Progress is cumulative from the start of your Archipelago save for that seed. Types of locations:
+Locations are checked by the client when you submit matches (`/submit_match <match_id>`). Progress is cumulative from the start of your Archipelago save for that seed. Which locations exist depends on **Game Mode** (Standard vs Street Brawl).
+
+**Shared (both modes):** Hero wins, matches played, wins, kills, assists, Key Player, MVP, player damage.
+
+**Standard only** (not in Street Brawl seeds): Soul Urn, neutral camps, Sinner's Sacrifice jackpots, souls, boss damage, denies, last hits.
+
+**Street Brawl only** (only in Street Brawl seeds): Win 5/10/25/50 Street Brawl rounds; win a round in under 1m 30s or under 2m; win a match 3-0; win a match in under 7m or 10m; win without dying; win with 10+ kills.
 
 | Category | Examples |
 |----------|----------|
 | **Hero wins** | Win a game as [Hero] (Reward 1/3, 2/3, 3/3) for each of the 38 heroes. Requires that hero to be unlocked. |
 | **Matches played** | Complete 5, 10, 20, 50 matches. |
 | **Wins** | Win 1 match; Win 5 / 10 / 15 / 20 / 25 matches (Reward 1/5 through 5/5 at each tier). |
-| **Soul Urn** | Deliver the Soul Urn (in-game accolade). |
-| **Neutral camps** | Kill 1, 5, 10, 25, 50, 100 neutral camps. |
-| **Sinner's Sacrifice** | Jackpots at 25, 50, 100, 250. |
+| **Soul Urn** | Deliver the Soul Urn (in-game accolade). *Standard only.* |
+| **Neutral camps** | Kill 1, 5, 10, 25, 50, 100 neutral camps. *Standard only.* |
+| **Sinner's Sacrifice** | Jackpots at 25, 50, 100, 250. *Standard only.* |
 | **Kills** | Kill 1, 10, 25, 50, 100, 250 enemy heroes. |
 | **Assists** | Get 1, 10, 25, 50, 100, 250 assists. |
-| **Souls** | Earn 10k, 50k, 100k, 250k, 500k, 1m souls (net worth). |
+| **Souls** | Earn 10k, 50k, 100k, 250k, 500k, 1m souls (net worth). *Standard only.* |
 | **Key Player** | Be a Key Player (MVP rank 1, 2, or 3) in 5, 10, 25 matches. |
 | **MVP** | Be the MVP (rank 1) in 1, 3, 5 matches. |
-| **Boss damage** | Deal 10k, 25k, 50k, 100k total; or 5k, 10k in a single match. |
+| **Boss damage** | Deal 10k, 25k, 50k, 100k total; or 5k, 10k in a single match. *Standard only.* |
 | **Player damage** | Deal 100k, 250k, 500k, 1m total; or 10k, 20k, 30k in a single match. |
-| **Denies** | Get 10, 25, 50 denies. |
-| **Last hits** | Get 250, 500, 1k, 2k last hits. |
-| **Goal** | Checked automatically when you meet your configured win condition (unique characters or total wins). |
+| **Denies** | Get 10, 25, 50 denies. *Standard only.* |
+| **Last hits** | Get 250, 500, 1k, 2k last hits. *Standard only.* |
+| **Street Brawl** | Round wins (5, 10, 25, 50); round under 90s/2m; match 3-0; match under 7m/10m; win without dying; win with 10+ kills. *Street Brawl only.* |
+| **Goal** | Checked automatically when you meet your win condition (unique characters, total wins, or enough Spirits). |
 
 ---
 
@@ -166,7 +175,10 @@ Match data is fetched from `https://api.deadlock-api.com/v1/matches/<match_id>/m
 
 ### Completion
 
-When you meet your goal (e.g. enough unique hero wins or total wins), the client will send the **Goal** location check and a status update to the server so the multiworld marks your game as complete.
+When you meet your goal, the client will send the **Goal** location check and a status update to the server so the multiworld marks your game as complete:
+
+- **Unique Characters** or **Total Wins** – The client checks your save (unique heroes won / total wins) after each submitted match and sends Goal when the threshold is reached.
+- **Spirits** – The client counts Spirits you have received from the multiworld. When your count reaches the required number (or you receive a new batch that pushes you over), it sends the Goal check. You can also trigger the check by submitting any match.
 
 ---
 

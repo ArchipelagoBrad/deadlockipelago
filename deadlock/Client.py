@@ -66,6 +66,16 @@ class DeadlockSave:
     denies_total: int = 0
     last_hits_total: int = 0
 
+    # Street Brawl (game_mode 4) – only used when seed is Street Brawl
+    street_brawl_round_wins_total: int = 0
+    street_brawl_round_win_under_90s: bool = False
+    street_brawl_round_win_under_120s: bool = False
+    street_brawl_match_3_0: bool = False
+    street_brawl_match_under_7m: bool = False
+    street_brawl_match_under_10m: bool = False
+    street_brawl_win_no_deaths: bool = False
+    street_brawl_win_10_plus_kills: bool = False
+
     # Unique heroes we've won with (authoritative for goal; not derived from server state)
     unique_heroes_won: list[str] = None
 
@@ -109,19 +119,29 @@ def _accolade_value(player: dict, accolade_id: int) -> int:
 # Goal type values (must match options.GoalType)
 GOAL_UNIQUE_CHARACTERS = 0
 GOAL_TOTAL_WINS = 1
+GOAL_SPIRITS = 2
+
+# MacGuffin item name (must match items.FILLER_ITEM_NAME)
+SPIRITS_ITEM_NAME = "Spirits"
+
+# Game mode from API (match_info.game_mode)
+GAME_MODE_STREET_BRAWL = 4
 
 
-def _get_goal_options(slot_data: dict) -> tuple[int, int, int]:
-    """Return (goal_type, unique_characters_to_win, total_wins_to_win) from slot_data. Defaults match options."""
+def _get_goal_options(slot_data: dict) -> tuple[int, int, int, int]:
+    """Return (goal_type, unique_characters_to_win, total_wins_to_win, spirits_to_win) from slot_data."""
     if not isinstance(slot_data, dict):
         slot_data = {}
     raw_goal = slot_data.get("goal_type", GOAL_UNIQUE_CHARACTERS)
     if raw_goal in (1, "1", "total_wins"):
         goal_type = GOAL_TOTAL_WINS
+    elif raw_goal in (2, "2", "spirits"):
+        goal_type = GOAL_SPIRITS
     else:
         goal_type = GOAL_UNIQUE_CHARACTERS
     raw_unique = slot_data.get("unique_characters_to_win", 10)
     raw_total = slot_data.get("total_wins_to_win", 25)
+    raw_spirits = slot_data.get("spirits_to_win", 10)
     try:
         unique = int(raw_unique)
     except (TypeError, ValueError):
@@ -130,9 +150,16 @@ def _get_goal_options(slot_data: dict) -> tuple[int, int, int]:
         total_wins = int(raw_total)
     except (TypeError, ValueError):
         total_wins = 25
+    try:
+        spirits = int(raw_spirits)
+    except (TypeError, ValueError):
+        spirits = 10
     unique = max(1, min(38, unique))
     total_wins = max(1, min(100, total_wins))
-    return (goal_type, unique, total_wins)
+    # Street Brawl has fewer locations; server sends clamped value, but clamp again for safety
+    max_spirits = 143 if slot_data.get("game_mode", 0) == 1 else 162
+    spirits = max(1, min(max_spirits, spirits))
+    return (goal_type, unique, total_wins, spirits)
 
 
 def _load_hero_id_to_name() -> dict[int, str]:
@@ -146,6 +173,58 @@ def _load_hero_id_to_name() -> dict[int, str]:
     except Exception as e:
         logger.warning("Could not load heroes.csv: %s", e)
     return out
+
+
+def _count_spirits_received(ctx: "DeadlockContext") -> int:
+    """Return how many Spirits (MacGuffin) items the player has received."""
+    try:
+        game_items = ctx.item_names[ctx.game]
+    except (KeyError, TypeError, AttributeError):
+        game_items = {}
+    count = 0
+    for net_item in getattr(ctx, "items_received", []):
+        item_id = getattr(net_item, "item", None)
+        if item_id is None:
+            continue
+        if game_items.get(item_id) == SPIRITS_ITEM_NAME:
+            count += 1
+    return count
+
+
+async def _check_goal_and_send_if_met(
+    ctx: "DeadlockContext",
+    location_name_to_id: dict[str, int] | None = None,
+    missing: set[int] | None = None,
+    wins_after: int | None = None,
+) -> None:
+    """If the player has met their win condition, send the Goal location check and status."""
+    if location_name_to_id is None:
+        try:
+            game_locations = ctx.location_names[ctx.game]
+        except (KeyError, TypeError):
+            game_locations = {}
+        location_name_to_id = {name: loc_id for loc_id, name in game_locations.items()}
+    if missing is None:
+        missing = getattr(ctx, "missing_locations", set())
+    if wins_after is None:
+        wins_after = ctx.save.wins_total
+    slot_data = getattr(ctx, "slot_data", None) or {}
+    goal_type, unique_req, total_wins_req, spirits_req = _get_goal_options(slot_data)
+    goal_met = False
+    if goal_type == GOAL_UNIQUE_CHARACTERS and len(ctx.save.unique_heroes_won) >= unique_req:
+        goal_met = True
+    elif goal_type == GOAL_TOTAL_WINS and wins_after >= total_wins_req:
+        goal_met = True
+    elif goal_type == GOAL_SPIRITS:
+        if _count_spirits_received(ctx) >= spirits_req:
+            goal_met = True
+    if goal_met and ClientStatus is not None:
+        goal_loc_id = location_name_to_id.get("Goal")
+        if goal_loc_id is not None and goal_loc_id in missing:
+            await ctx.check_locations([goal_loc_id])
+            ctx.output("Goal completed! You have met the win condition.")
+            ctx.finished_game = True
+            await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
 
 
 async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
@@ -238,6 +317,11 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
 
     player_team = player.get("team")
     player_won = player_team is not None and player_team == winning_team
+    match_game_mode = match_info.get("game_mode")
+    try:
+        match_game_mode = int(match_game_mode) if match_game_mode is not None else None
+    except (TypeError, ValueError):
+        match_game_mode = None
     hero_id = player.get("hero_id")
     hero_id_to_name = _load_hero_id_to_name()
     hero_name = hero_id_to_name.get(hero_id) if hero_id is not None else None
@@ -323,19 +407,16 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
             for k in range(1, 6):
                 _add_if_earned(f"Win {win_threshold} matches (Reward {k}/5)")
 
-    # Soul Urn (accolade 13)
-    if accolade_urn >= 1:
-        _add_if_earned("Deliver the Soul Urn")
-
-    # Neutral camps (accolade 7): 1, 5, 10, 25, 50, 100
-    for threshold in (1, 5, 10, 25, 50, 100):
-        if neutral_camps_after >= threshold:
-            _add_if_earned(f"Kill {threshold} neutral camp" + ("s" if threshold != 1 else ""))
-
-    # Sinner's Sacrifice jackpots (accolade 14): 25, 50, 100, 250 (~5/game average)
-    for threshold in (25, 50, 100, 250):
-        if sinners_jackpots_after >= threshold:
-            _add_if_earned(f"Sinner's Sacrifice jackpot ({threshold})")
+    # Standard-only: Soul Urn, neutrals, Sinner's (disabled in Street Brawl seeds)
+    if match_game_mode != GAME_MODE_STREET_BRAWL:
+        if accolade_urn >= 1:
+            _add_if_earned("Deliver the Soul Urn")
+        for threshold in (1, 5, 10, 25, 50, 100):
+            if neutral_camps_after >= threshold:
+                _add_if_earned(f"Kill {threshold} neutral camp" + ("s" if threshold != 1 else ""))
+        for threshold in (25, 50, 100, 250):
+            if sinners_jackpots_after >= threshold:
+                _add_if_earned(f"Sinner's Sacrifice jackpot ({threshold})")
 
     # Kills: 1, 10, 25, 50, 100, 250
     for threshold in (1, 10, 25, 50, 100, 250):
@@ -347,11 +428,12 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
         if assists_after >= threshold:
             _add_if_earned(f"Get {threshold} assist" + ("s" if threshold != 1 else ""))
 
-    # Souls: 10k, 50k, 100k, 250k, 500k, 1m
-    soul_thresholds = [(10_000, "10k"), (50_000, "50k"), (100_000, "100k"), (250_000, "250k"), (500_000, "500k"), (1_000_000, "1m")]
-    for value, label in soul_thresholds:
-        if souls_after >= value:
-            _add_if_earned(f"Earn {label} souls")
+    # Standard-only: souls (disabled in Street Brawl seeds)
+    if match_game_mode != GAME_MODE_STREET_BRAWL:
+        soul_thresholds = [(10_000, "10k"), (50_000, "50k"), (100_000, "100k"), (250_000, "250k"), (500_000, "500k"), (1_000_000, "1m")]
+        for value, label in soul_thresholds:
+            if souls_after >= value:
+                _add_if_earned(f"Earn {label} souls")
 
     # Key player (mvp_rank 1, 2, or 3): 5, 10, 25 matches
     for threshold in (5, 10, 25):
@@ -363,17 +445,16 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
         if mvp_after >= threshold:
             _add_if_earned(f"Be the MVP in {threshold} Match" + ("es" if threshold != 1 else ""))
 
-    # Boss damage (cumulative): 10k, 25k, 50k, 100k
-    boss_cumul = [(10_000, "10k"), (25_000, "25k"), (50_000, "50k"), (100_000, "100k")]
-    for value, label in boss_cumul:
-        if boss_damage_after >= value:
-            _add_if_earned(f"Deal {label} Boss Damage")
-
-    # Boss damage in a single match: 5k, 10k
-    if match_boss_damage >= 5_000:
-        _add_if_earned("Deal 5k Boss Damage in a Match")
-    if match_boss_damage >= 10_000:
-        _add_if_earned("Deal 10k Boss Damage in a Match")
+    # Standard-only: boss damage (disabled in Street Brawl seeds)
+    if match_game_mode != GAME_MODE_STREET_BRAWL:
+        boss_cumul = [(10_000, "10k"), (25_000, "25k"), (50_000, "50k"), (100_000, "100k")]
+        for value, label in boss_cumul:
+            if boss_damage_after >= value:
+                _add_if_earned(f"Deal {label} Boss Damage")
+        if match_boss_damage >= 5_000:
+            _add_if_earned("Deal 5k Boss Damage in a Match")
+        if match_boss_damage >= 10_000:
+            _add_if_earned("Deal 10k Boss Damage in a Match")
 
     # Player damage (cumulative): 100k, 250k, 500k, 1m
     player_cumul = [(100_000, "100k"), (250_000, "250k"), (500_000, "500k"), (1_000_000, "1m")]
@@ -386,16 +467,80 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
         if match_player_damage >= threshold:
             _add_if_earned(f"Deal {label} Player Damage in a Match")
 
-    # Denies (cumulative): 10, 25, 50
-    for threshold in (10, 25, 50):
-        if denies_after >= threshold:
-            _add_if_earned(f"Get {threshold} Denies")
+    # Standard-only: denies, last hits (disabled in Street Brawl seeds)
+    if match_game_mode != GAME_MODE_STREET_BRAWL:
+        for threshold in (10, 25, 50):
+            if denies_after >= threshold:
+                _add_if_earned(f"Get {threshold} Denies")
+        last_hits_cumul = [(250, "250"), (500, "500"), (1_000, "1k"), (2_000, "2k")]
+        for value, label in last_hits_cumul:
+            if last_hits_after >= value:
+                _add_if_earned(f"Get {label} Last Hits")
 
-    # Last hits (cumulative): 250, 500, 1k, 2k
-    last_hits_cumul = [(250, "250"), (500, "500"), (1_000, "1k"), (2_000, "2k")]
-    for value, label in last_hits_cumul:
-        if last_hits_after >= value:
-            _add_if_earned(f"Get {label} Last Hits")
+    # Street Brawl-only checks (match must be game_mode 4)
+    if match_game_mode == GAME_MODE_STREET_BRAWL:
+        street_brawl_rounds = data.get("street_brawl_rounds") or []
+        rounds_won_this_match = sum(1 for r in street_brawl_rounds if isinstance(r, dict) and r.get("winning_team") == player_team)
+        round_win_under_90 = False
+        round_win_under_120 = False
+        for r in street_brawl_rounds:
+            if not isinstance(r, dict) or r.get("winning_team") != player_team:
+                continue
+            dur = r.get("round_duration_s")
+            try:
+                dur = int(dur) if dur is not None else 999
+            except (TypeError, ValueError):
+                dur = 999
+            if dur < 90:
+                round_win_under_90 = True
+            if dur < 120:
+                round_win_under_120 = True
+        match_duration_s = match_info.get("duration_s")
+        try:
+            match_duration_s = int(match_duration_s) if match_duration_s is not None else 99999
+        except (TypeError, ValueError):
+            match_duration_s = 99999
+        team_0_rounds = sum(1 for r in street_brawl_rounds if isinstance(r, dict) and r.get("winning_team") == 0)
+        team_1_rounds = sum(1 for r in street_brawl_rounds if isinstance(r, dict) and r.get("winning_team") == 1)
+        match_3_0 = (player_team == 0 and team_0_rounds == 3 and team_1_rounds == 0) or (player_team == 1 and team_1_rounds == 3 and team_0_rounds == 0)
+        no_deaths = len(player.get("death_details") or []) == 0
+        ten_plus_kills = (player_kills or 0) >= 10
+
+        sb_round_wins_after = ctx.save.street_brawl_round_wins_total + rounds_won_this_match
+        for threshold in (5, 10, 25, 50):
+            if sb_round_wins_after >= threshold:
+                _add_if_earned(f"Win {threshold} Street Brawl rounds")
+        if round_win_under_90 or ctx.save.street_brawl_round_win_under_90s:
+            _add_if_earned("Win a Street Brawl round in under 1m 30s")
+        if round_win_under_120 or ctx.save.street_brawl_round_win_under_120s:
+            _add_if_earned("Win a Street Brawl round in under 2m")
+        if match_3_0 or ctx.save.street_brawl_match_3_0:
+            _add_if_earned("Win a Street Brawl match 3-0")
+        if (match_duration_s < 420 and player_won) or ctx.save.street_brawl_match_under_7m:
+            _add_if_earned("Win a Street Brawl match in under 7m")
+        if (match_duration_s < 600 and player_won) or ctx.save.street_brawl_match_under_10m:
+            _add_if_earned("Win a Street Brawl match in under 10m")
+        if (player_won and no_deaths) or ctx.save.street_brawl_win_no_deaths:
+            _add_if_earned("Win a Street Brawl without dying")
+        if (player_won and ten_plus_kills) or ctx.save.street_brawl_win_10_plus_kills:
+            _add_if_earned("Win a Street Brawl with 10+ kills")
+
+        # Persist Street Brawl stats
+        ctx.save.street_brawl_round_wins_total += rounds_won_this_match
+        if round_win_under_90:
+            ctx.save.street_brawl_round_win_under_90s = True
+        if round_win_under_120:
+            ctx.save.street_brawl_round_win_under_120s = True
+        if match_3_0:
+            ctx.save.street_brawl_match_3_0 = True
+        if player_won and match_duration_s < 420:
+            ctx.save.street_brawl_match_under_7m = True
+        if player_won and match_duration_s < 600:
+            ctx.save.street_brawl_match_under_10m = True
+        if player_won and no_deaths:
+            ctx.save.street_brawl_win_no_deaths = True
+        if player_won and ten_plus_kills:
+            ctx.save.street_brawl_win_10_plus_kills = True
 
     # location_name_to_id already built above from game_locations
     missing = ctx.missing_locations
@@ -441,20 +586,7 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
     ctx.save_save()
 
     # Win condition: check goal and send Goal location if met (use save-backed stats only)
-    slot_data = getattr(ctx, "slot_data", None) or {}
-    goal_type, unique_req, total_wins_req = _get_goal_options(slot_data)
-    goal_met = False
-    if goal_type == GOAL_UNIQUE_CHARACTERS and len(ctx.save.unique_heroes_won) >= unique_req:
-        goal_met = True
-    elif goal_type == GOAL_TOTAL_WINS and wins_after >= total_wins_req:
-        goal_met = True
-    if goal_met and ClientStatus is not None:
-        goal_loc_id = location_name_to_id.get("Goal")
-        if goal_loc_id is not None and goal_loc_id in missing:
-            await ctx.check_locations([goal_loc_id])
-            ctx.output("Goal completed! You have met the win condition.")
-            ctx.finished_game = True
-            await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
+    await _check_goal_and_send_if_met(ctx, location_name_to_id, missing, wins_after)
 
 
 class DeadlockCommandProcessor(ClientCommandProcessor):
@@ -556,8 +688,12 @@ class DeadlockContext(CommonContext):
                     self._save_loaded_for_seed = False
                     self.ensure_seed_save_loaded(migrate_from_unconnected=True)
         elif cmd == "Connected":
-            # Store slot_data so we can read goal options (goal_type, unique_characters_to_win, total_wins_to_win)
+            # Store slot_data so we can read goal options (goal_type, unique_characters_to_win, total_wins_to_win, spirits_to_win)
             setattr(self, "slot_data", args.get("slot_data") or {})
+        elif cmd == "ReceivedItems":
+            # Spirits (MacGuffin) goal can be met by receiving items; check after each batch
+            if async_start:
+                async_start(_check_goal_and_send_if_met(self), name="check_goal")
 
         super().on_package(cmd, args)
 
@@ -675,16 +811,20 @@ class DeadlockContext(CommonContext):
             return
         self.ensure_seed_save_loaded()
         slot_data = getattr(self, "slot_data", None) or {}
-        goal_type, unique_req, total_wins_req = _get_goal_options(slot_data)
+        goal_type, unique_req, total_wins_req, spirits_req = _get_goal_options(slot_data)
 
         if goal_type == GOAL_UNIQUE_CHARACTERS:
             current = len(self.save.unique_heroes_won)
             self.output(f"Goal: Win with {unique_req} unique character(s).")
             self.output(f"Progress: {current} / {unique_req} unique character(s) won with.")
-        else:
+        elif goal_type == GOAL_TOTAL_WINS:
             current = self.save.wins_total
             self.output(f"Goal: Win {total_wins_req} match(es).")
             self.output(f"Progress: {current} / {total_wins_req} win(s).")
+        else:
+            current = _count_spirits_received(self)
+            self.output(f"Goal: Collect {spirits_req} Spirits (MacGuffin).")
+            self.output(f"Progress: {current} / {spirits_req} Spirits received.")
 
     def cmd_set_player_id(self, args: list[str]) -> None:
         self.ensure_seed_save_loaded()
@@ -718,7 +858,8 @@ class DeadlockContext(CommonContext):
             f"  Boss damage: {self.save.boss_damage_total:,}\n"
             f"  Player damage: {self.save.player_damage_total:,}\n"
             f"  Denies: {self.save.denies_total}\n"
-            f"  Last hits: {self.save.last_hits_total}"
+            f"  Last hits: {self.save.last_hits_total}\n"
+            f"  Street Brawl round wins: {self.save.street_brawl_round_wins_total}\n"
         )
 
     def cmd_submit_match(self, args: list[str]) -> None:

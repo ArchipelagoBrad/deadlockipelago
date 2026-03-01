@@ -392,3 +392,31 @@ body {
   background: var(--accent-hover);
   box-shadow: 0 0 12px rgba(225, 166, 85, 0.35);
 }
+
+/* Spirits to Win slider */
+.spirits-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.spirits-slider {
+  flex: 1;
+  min-width: 120px;
+  max-width: 280px;
+  height: 0.5rem;
+  accent-color: var(--accent);
+}
+
+.spirits-display {
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 6rem;
+}
+
+.spirits-percent {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
