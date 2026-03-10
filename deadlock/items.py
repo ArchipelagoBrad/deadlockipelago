@@ -11,12 +11,24 @@ from BaseClasses import Item, ItemClassification
 GAME_NAME = "Deadlock"
 
 VICTORY_ITEM_NAME = "Victory"
-# MacGuffin item: collect X to win when goal type is Spirits; otherwise used as pool filler.
+# MacGuffin item: collect X to win (Spirits goal) or unlock final character (Win with Character).
+# Spirits stay classified as filler in item definitions so they don't interfere with progression
+# density, but we override DeadlockItem.excludable so Spirits are never placed in excluded
+# locations.
 FILLER_ITEM_NAME = "Spirits"
 
 
 class DeadlockItem(Item):
     game: str = GAME_NAME
+
+    @property
+    def excludable(self) -> bool:  # type: ignore[override]
+        # Treat Spirits (MacGuffin) as non-excludable even though they are filler-classified.
+        # This ensures they can't be placed on user-excluded locations while keeping them
+        # out of progression-balancing logic.
+        if self.name == FILLER_ITEM_NAME:
+            return False
+        return super().excludable
 
 
 @dataclass(frozen=True)

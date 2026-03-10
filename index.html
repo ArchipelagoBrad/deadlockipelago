@@ -64,6 +64,7 @@
             <option value="unique_characters" selected>Unique Characters</option>
             <option value="total_wins">Total Wins</option>
             <option value="spirits">Spirits (MacGuffin)</option>
+            <option value="win_with_character">Win with Character</option>
           </select>
           <p id="goal_type_description" class="goal-type-description">Win with a set number of different characters. Each character you win a match with counts once toward the goal.</p>
         </div>
@@ -89,6 +90,19 @@
           <span class="field-hint" id="spirits_to_win_hint">Number of Spirits (MacGuffin) you must collect to win. Max 162 (Standard).</span>
         </div>
 
+        <div class="field goal-dependent hidden" id="field-win-with-character">
+          <label for="spirits_to_unlock_final">Spirits to Unlock Final Character</label>
+          <div class="spirits-slider-row">
+            <input type="range" id="spirits_to_unlock_final" name="spirits_to_unlock_final" min="1" max="162" value="10" class="spirits-slider">
+            <output id="spirits_to_unlock_final_display" class="spirits-display" aria-live="polite">10</output>
+          </div>
+          <span class="field-hint">Collect this many Spirits to unlock your final character. Then win one match with that character to complete.</span>
+          <label for="final_character" class="final-char-label">Final Character (cannot be a starting hero)</label>
+          <select id="final_character" name="final_character">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+
         <div class="field">
           <label for="game_mode">Game Mode</label>
           <select id="game_mode" name="game_mode">
@@ -96,6 +110,14 @@
             <option value="street_brawl">Street Brawl</option>
           </select>
           <p class="field-hint">Only locations for the selected mode exist in the seed. Use this to add or remove checks per mode.</p>
+        </div>
+
+        <div class="field">
+          <label for="exclude_hard_locations">
+            <input type="checkbox" id="exclude_hard_locations" name="exclude_hard_locations" value="1">
+            Exclude hard locations
+          </label>
+          <p class="field-hint">Remove harder checks (MVP/Key Player, high kills, ending rounds quickly, etc.) from the seed.</p>
         </div>
 
       </section>

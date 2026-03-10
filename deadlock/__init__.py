@@ -6,7 +6,13 @@ from typing import Any, Mapping
 from BaseClasses import Region, ItemClassification
 from worlds.AutoWorld import World, WebWorld
 
-from .options import DeadlockOptions, GoalType, GameMode
+from .options import (
+    DeadlockOptions,
+    GoalType,
+    GameMode,
+    ExcludeHardLocations,
+    _FINAL_CHARACTER_NAMES,
+)
 from .items import DeadlockItem, load_items, build_item_name_to_id, FILLER_ITEM_NAME, VICTORY_ITEM_NAME
 from .locations import DeadlockLocation, LocationDef, load_locations, build_location_name_to_id
 from .rules import set_deadlock_rules
@@ -39,6 +45,8 @@ class DeadlockWorld(World):
     def create_item(self, name: str) -> DeadlockItem:
         # Determine classification from defs or fallback for special items.
         if name == FILLER_ITEM_NAME:
+            # Spirits (MacGuffin) use filler classification in defs; DeadlockItem.excludable
+            # is overridden so they are never placed on excluded locations.
             classification = ItemClassification.filler
         elif name == VICTORY_ITEM_NAME:
             classification = ItemClassification.progression
@@ -62,13 +70,19 @@ class DeadlockWorld(World):
 
     def generate_early(self) -> None:
         mode = self._game_mode_value()
+        exclude_hard = self.options.exclude_hard_locations == ExcludeHardLocations.option_true
         def mode_ok(d: LocationDef) -> bool:
             m = getattr(d, "game_mode", "") or ""
             return m == "" or m == mode
-        self._filtered_location_defs = [d for d in self._location_defs if mode_ok(d)]
-        # Stable IDs by index in full list; only include locations for this mode.
+        def location_ok(d: LocationDef) -> bool:
+            if not mode_ok(d):
+                return False
+            if exclude_hard and (getattr(d, "difficulty", "") or "").lower() == "hard":
+                return False
+            return True
+        self._filtered_location_defs = [d for d in self._location_defs if location_ok(d)]
         self.location_name_to_id = build_location_name_to_id(
-            self.base_id + 10_000, self._location_defs, filter_fn=mode_ok
+            self.base_id + 10_000, self._location_defs, filter_fn=location_ok
         )
 
     def create_regions(self) -> None:
@@ -81,26 +95,44 @@ class DeadlockWorld(World):
         if self.options.goal_type == GoalType.option_total_wins:
             x = self.options.total_wins_to_win.value
             return f"Goal: Win {x} Total Matches"
+        if self.options.goal_type == GoalType.option_win_with_character:
+            x = self.options.spirits_to_unlock_final.value
+            hero = _FINAL_CHARACTER_NAMES[self.options.final_character.value] if self.options.final_character.value < len(_FINAL_CHARACTER_NAMES) else "?"
+            return f"Goal: Win with {hero} (after {x} Spirits)"
         x = self.options.spirits_to_win.value
         return f"Goal: Collect {x} Spirits"
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         """Data sent to the client in the Connected packet so /goal and win condition use the correct options."""
-        spirits_to_win = self.options.spirits_to_win.value
-        if self.options.game_mode == GameMode.option_street_brawl:
-            spirits_to_win = min(spirits_to_win, 143)
+        # Max Spirits = number of check locations (pool size); Goal has locked Victory so pool size is locations - 1
+        max_spirits = len(self._filtered_location_defs) - 1
+        spirits_to_win = min(self.options.spirits_to_win.value, max_spirits)
+        spirits_to_unlock_final = min(self.options.spirits_to_unlock_final.value, max_spirits)
+        final_character_index = self.options.final_character.value
+        final_character_name = _FINAL_CHARACTER_NAMES[final_character_index] if final_character_index < len(_FINAL_CHARACTER_NAMES) else ""
         return {
             "goal_type": self.options.goal_type.value,
             "unique_characters_to_win": self.options.unique_characters_to_win.value,
             "total_wins_to_win": self.options.total_wins_to_win.value,
             "spirits_to_win": spirits_to_win,
+            "spirits_to_unlock_final": spirits_to_unlock_final,
+            "final_character": final_character_name,
             "game_mode": self.options.game_mode.value,
+            "exclude_hard_locations": self.options.exclude_hard_locations.value,
         }
 
     def create_items(self) -> None:
         # Add all defined items with copies
         pool = []
+        final_character_name = ""
+        if self.options.goal_type == GoalType.option_win_with_character:
+            idx = self.options.final_character.value
+            if idx < len(_FINAL_CHARACTER_NAMES):
+                final_character_name = _FINAL_CHARACTER_NAMES[idx]
+        unlock_final_item = f"Unlock {final_character_name}" if final_character_name else ""
         for d in self._item_defs:
+            if unlock_final_item and d.name == unlock_final_item:
+                continue  # Do not add Unlock FinalCharacter to pool; player gets it when they reach X Spirits
             for _ in range(d.copies):
                 pool.append(self.create_item(d.name))
 

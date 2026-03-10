@@ -20,6 +20,7 @@ class DeadlockLocation(Location):
 class LocationDef:
     name: str
     game_mode: str = ""  # "" = both, "standard", "street_brawl"
+    difficulty: str = ""  # "easy", "normal", "hard" from CSV; used when exclude_hard_locations is on
 
 
 def load_locations() -> List[LocationDef]:
@@ -29,7 +30,8 @@ def load_locations() -> List[LocationDef]:
         for row in reader:
             name = row["location_name"].strip()
             mode = (row.get("game_mode") or "").strip().lower()
-            locs.append(LocationDef(name=name, game_mode=mode))
+            difficulty = (row.get("difficulty") or "").strip().lower()
+            locs.append(LocationDef(name=name, game_mode=mode, difficulty=difficulty))
         return locs
 
 

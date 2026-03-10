@@ -173,11 +173,11 @@ Earn 250k souls,Awarded upon earning the amount of souls specified (cumulative s
 Earn 500k souls,Awarded upon earning the amount of souls specified (cumulative since Archipelago start),hard,,,standard
 Earn 1m souls,Awarded upon earning the amount of souls specified (cumulative since Archipelago start),hard,,,standard
 Be a Key Player in 5 Matches,Awarded upon being a key player (top 3) in the number of matches specified (cumulative).,normal,,,
-Be a Key Player in 10 Matches,Awarded upon being a key player (top 3) in the number of matches specified (cumulative).,normal,,,
+Be a Key Player in 10 Matches,Awarded upon being a key player (top 3) in the number of matches specified (cumulative).,hard,,,
 Be a Key Player in 25 Matches,Awarded upon being a key player (top 3) in the number of matches specified (cumulative).,hard,,,
 Be the MVP in 1 Match,Awarded upon being the MVP in the number of matches specified (cumulative).,easy,,,
-Be the MVP in 3 Matches,Awarded upon being the MVP in the number of matches specified (cumulative).,normal,,,
-Be the MVP in 5 Matches,Awarded upon being the MVP in the number of matches specified (cumulative).,normal,,,
+Be the MVP in 3 Matches,Awarded upon being the MVP in the number of matches specified (cumulative).,hard,,,
+Be the MVP in 5 Matches,Awarded upon being the MVP in the number of matches specified (cumulative).,hard,,,
 Deal 10k Boss Damage,Awarded upon dealing the amount of boss damage specified (cumulative).,easy,,,standard
 Deal 25k Boss Damage,Awarded upon dealing the amount of boss damage specified (cumulative).,easy,,,standard
 Deal 50k Boss Damage,Awarded upon dealing the amount of boss damage specified (cumulative).,normal,,,standard

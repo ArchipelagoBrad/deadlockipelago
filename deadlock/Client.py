@@ -120,6 +120,7 @@ def _accolade_value(player: dict, accolade_id: int) -> int:
 GOAL_UNIQUE_CHARACTERS = 0
 GOAL_TOTAL_WINS = 1
 GOAL_SPIRITS = 2
+GOAL_WIN_WITH_CHARACTER = 3
 
 # MacGuffin item name (must match items.FILLER_ITEM_NAME)
 SPIRITS_ITEM_NAME = "Spirits"
@@ -128,8 +129,8 @@ SPIRITS_ITEM_NAME = "Spirits"
 GAME_MODE_STREET_BRAWL = 4
 
 
-def _get_goal_options(slot_data: dict) -> tuple[int, int, int, int]:
-    """Return (goal_type, unique_characters_to_win, total_wins_to_win, spirits_to_win) from slot_data."""
+def _get_goal_options(slot_data: dict) -> tuple[int, int, int, int, int, str]:
+    """Return (goal_type, unique_characters_to_win, total_wins_to_win, spirits_to_win, spirits_to_unlock_final, final_character) from slot_data."""
     if not isinstance(slot_data, dict):
         slot_data = {}
     raw_goal = slot_data.get("goal_type", GOAL_UNIQUE_CHARACTERS)
@@ -137,11 +138,15 @@ def _get_goal_options(slot_data: dict) -> tuple[int, int, int, int]:
         goal_type = GOAL_TOTAL_WINS
     elif raw_goal in (2, "2", "spirits"):
         goal_type = GOAL_SPIRITS
+    elif raw_goal in (3, "3", "win_with_character"):
+        goal_type = GOAL_WIN_WITH_CHARACTER
     else:
         goal_type = GOAL_UNIQUE_CHARACTERS
     raw_unique = slot_data.get("unique_characters_to_win", 10)
     raw_total = slot_data.get("total_wins_to_win", 25)
     raw_spirits = slot_data.get("spirits_to_win", 10)
+    raw_spirits_unlock = slot_data.get("spirits_to_unlock_final", 10)
+    final_character = str(slot_data.get("final_character", "") or "").strip()
     try:
         unique = int(raw_unique)
     except (TypeError, ValueError):
@@ -154,12 +159,16 @@ def _get_goal_options(slot_data: dict) -> tuple[int, int, int, int]:
         spirits = int(raw_spirits)
     except (TypeError, ValueError):
         spirits = 10
+    try:
+        spirits_unlock = int(raw_spirits_unlock)
+    except (TypeError, ValueError):
+        spirits_unlock = 10
     unique = max(1, min(38, unique))
     total_wins = max(1, min(100, total_wins))
-    # Street Brawl has fewer locations; server sends clamped value, but clamp again for safety
     max_spirits = 143 if slot_data.get("game_mode", 0) == 1 else 162
     spirits = max(1, min(max_spirits, spirits))
-    return (goal_type, unique, total_wins, spirits)
+    spirits_unlock = max(1, min(max_spirits, spirits_unlock))
+    return (goal_type, unique, total_wins, spirits, spirits_unlock, final_character)
 
 
 def _load_hero_id_to_name() -> dict[int, str]:
@@ -196,6 +205,7 @@ async def _check_goal_and_send_if_met(
     location_name_to_id: dict[str, int] | None = None,
     missing: set[int] | None = None,
     wins_after: int | None = None,
+    hero_name_this_win: str | None = None,
 ) -> None:
     """If the player has met their win condition, send the Goal location check and status."""
     if location_name_to_id is None:
@@ -209,7 +219,7 @@ async def _check_goal_and_send_if_met(
     if wins_after is None:
         wins_after = ctx.save.wins_total
     slot_data = getattr(ctx, "slot_data", None) or {}
-    goal_type, unique_req, total_wins_req, spirits_req = _get_goal_options(slot_data)
+    goal_type, unique_req, total_wins_req, spirits_req, spirits_unlock_req, final_character = _get_goal_options(slot_data)
     goal_met = False
     if goal_type == GOAL_UNIQUE_CHARACTERS and len(ctx.save.unique_heroes_won) >= unique_req:
         goal_met = True
@@ -217,6 +227,9 @@ async def _check_goal_and_send_if_met(
         goal_met = True
     elif goal_type == GOAL_SPIRITS:
         if _count_spirits_received(ctx) >= spirits_req:
+            goal_met = True
+    elif goal_type == GOAL_WIN_WITH_CHARACTER and final_character and hero_name_this_win is not None:
+        if _count_spirits_received(ctx) >= spirits_unlock_req and hero_name_this_win == final_character:
             goal_met = True
     if goal_met and ClientStatus is not None:
         goal_loc_id = location_name_to_id.get("Goal")
@@ -293,7 +306,7 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
                 ctx.output(
                     "Match was started before this Archipelago save. Only matches played after you started this seed can be submitted."
                 )
-                return
+                return # disabled for testing
 
     players = match_info.get("players") or []
     winning_team = match_info.get("winning_team")
@@ -326,14 +339,18 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
     hero_id_to_name = _load_hero_id_to_name()
     hero_name = hero_id_to_name.get(hero_id) if hero_id is not None else None
 
-    # Anti-scumming: require the player to have unlocked this hero (via Archipelago items) before submitting
+    # Anti-scumming: require the player to have unlocked this hero (via items or, for Win with Character goal, final character once spirits >= X)
     if hero_name is None:
         ctx.output("Cannot submit this match: the hero you played could not be identified (hero_id not in game data).")
         return
+    slot_data = getattr(ctx, "slot_data", None) or {}
     unlocked_heroes = set(ctx._unlocked_heroes_from_items())
+    goal_type, _, _, _, spirits_unlock_req, final_character = _get_goal_options(slot_data)
+    if goal_type == GOAL_WIN_WITH_CHARACTER and final_character and _count_spirits_received(ctx) >= spirits_unlock_req:
+        unlocked_heroes.add(final_character)
     if hero_name not in unlocked_heroes:
         ctx.output("You cannot submit this match: you have not unlocked this character yet.")
-        return
+        return # disabled for testing
 
     # Match stats (for this match only)
     player_kills = int(player.get("kills") or 0)
@@ -586,7 +603,10 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
     ctx.save_save()
 
     # Win condition: check goal and send Goal location if met (use save-backed stats only)
-    await _check_goal_and_send_if_met(ctx, location_name_to_id, missing, wins_after)
+    await _check_goal_and_send_if_met(
+        ctx, location_name_to_id, missing, wins_after,
+        hero_name_this_win=hero_name if player_won else None,
+    )
 
 
 class DeadlockCommandProcessor(ClientCommandProcessor):
@@ -686,10 +706,22 @@ class DeadlockContext(CommonContext):
                     # When seed changes, rotate save
                     self.seed_name = new_seed
                     self._save_loaded_for_seed = False
+                    self._warned_no_heroes = False
                     self.ensure_seed_save_loaded(migrate_from_unconnected=True)
         elif cmd == "Connected":
             # Store slot_data so we can read goal options (goal_type, unique_characters_to_win, total_wins_to_win, spirits_to_win)
             setattr(self, "slot_data", args.get("slot_data") or {})
+            super().on_package(cmd, args)
+            # Warn once per connection if the player has no Unlock heroes (likely forgot starting heroes in YAML)
+            heroes = self._unlocked_heroes_from_items()
+            if not heroes and not getattr(self, "_warned_no_heroes", False):
+                self.output(
+                    "You have no characters unlocked. If you did not set starting heroes, create your YAML with the "
+                    "Player Options generator (https://archipelagobrad.github.io/deadlockipelago/index.html) and "
+                    "regenerate the multiworld so you receive Unlock items."
+                )
+                self._warned_no_heroes = True
+            return
         elif cmd == "ReceivedItems":
             # Spirits (MacGuffin) goal can be met by receiving items; check after each batch
             if async_start:
@@ -792,7 +824,13 @@ class DeadlockContext(CommonContext):
             return
 
         self.ensure_seed_save_loaded()
-        heroes = self._unlocked_heroes_from_items()
+        heroes = list(self._unlocked_heroes_from_items())
+        slot_data = getattr(self, "slot_data", None) or {}
+        goal_type, _, _, _, spirits_unlock_req, final_character = _get_goal_options(slot_data)
+        if goal_type == GOAL_WIN_WITH_CHARACTER and final_character and _count_spirits_received(self) >= spirits_unlock_req:
+            if final_character not in heroes:
+                heroes.append(final_character)
+                heroes.sort(key=str.lower)
         if not heroes:
             self.output("Unlocked heroes: (none yet)")
             self.output("Tip: you'll see heroes here after receiving 'Unlock <Hero>' items.")
@@ -803,6 +841,8 @@ class DeadlockContext(CommonContext):
         self.output(f"Unlocked heroes ({len(heroes)}): " + ", ".join(parts))
         if won_with:
             self.output("(* = already have a win with this hero)")
+        if goal_type == GOAL_WIN_WITH_CHARACTER and final_character and final_character in heroes:
+            self.output(f"(Final goal character: win with {final_character} to complete.)")
 
     def cmd_goal(self) -> None:
         """Show current goal and progress toward it."""
@@ -811,7 +851,7 @@ class DeadlockContext(CommonContext):
             return
         self.ensure_seed_save_loaded()
         slot_data = getattr(self, "slot_data", None) or {}
-        goal_type, unique_req, total_wins_req, spirits_req = _get_goal_options(slot_data)
+        goal_type, unique_req, total_wins_req, spirits_req, spirits_unlock_req, final_character = _get_goal_options(slot_data)
 
         if goal_type == GOAL_UNIQUE_CHARACTERS:
             current = len(self.save.unique_heroes_won)
@@ -821,6 +861,11 @@ class DeadlockContext(CommonContext):
             current = self.save.wins_total
             self.output(f"Goal: Win {total_wins_req} match(es).")
             self.output(f"Progress: {current} / {total_wins_req} win(s).")
+        elif goal_type == GOAL_WIN_WITH_CHARACTER and final_character:
+            spirits_current = _count_spirits_received(self)
+            self.output(f"Goal: Collect {spirits_unlock_req} Spirits to unlock your final character, then win one match with them.")
+            self.output(f"Win with: {final_character}")
+            self.output(f"Progress: {spirits_current} / {spirits_unlock_req} Spirits. Then win one match with {final_character}.")
         else:
             current = _count_spirits_received(self)
             self.output(f"Goal: Collect {spirits_req} Spirits (MacGuffin).")
