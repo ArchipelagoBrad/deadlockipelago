@@ -1,6 +1,7 @@
 <p align="center">
   <img src="./deadlock-portraits/deadlock_logo.png" alt="Deadlock Archipelago" width="600">
 </p>
+
 An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a meta-progression randomizer where locations are earned by playing matches (hero wins, match milestones, accolades) and items unlock heroes you can use. Complete your goal (e.g. win with N unique characters, N total wins, collect N **Spirits**, or **Win with Character** – collect Spirits to unlock a chosen hero, then win one match with them) to finish the seed. Supports **Standard** and **Street Brawl** game modes with mode-specific checks, and an option to **exclude hard locations** for a lighter run.
 
 ---
