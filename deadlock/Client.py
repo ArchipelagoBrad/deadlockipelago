@@ -200,6 +200,19 @@ def _count_spirits_received(ctx: "DeadlockContext") -> int:
     return count
 
 
+async def _warn_if_no_heroes_after_delay(ctx: "DeadlockContext", delay_seconds: float = 3.0) -> None:
+    """Run after Connected: wait for initial item sync, then warn once if the player has no Unlock heroes."""
+    await asyncio.sleep(delay_seconds)
+    heroes = ctx._unlocked_heroes_from_items()
+    if not heroes and not getattr(ctx, "_warned_no_heroes", False):
+        ctx.output(
+            "You have no characters unlocked. If you did not set starting heroes, create your YAML with the "
+            "Player Options generator (https://archipelagobrad.github.io/deadlockipelago/index.html) and "
+            "regenerate the multiworld so you receive Unlock items."
+        )
+        ctx._warned_no_heroes = True
+
+
 async def _check_goal_and_send_if_met(
     ctx: "DeadlockContext",
     location_name_to_id: dict[str, int] | None = None,
@@ -712,15 +725,9 @@ class DeadlockContext(CommonContext):
             # Store slot_data so we can read goal options (goal_type, unique_characters_to_win, total_wins_to_win, spirits_to_win)
             setattr(self, "slot_data", args.get("slot_data") or {})
             super().on_package(cmd, args)
-            # Warn once per connection if the player has no Unlock heroes (likely forgot starting heroes in YAML)
-            heroes = self._unlocked_heroes_from_items()
-            if not heroes and not getattr(self, "_warned_no_heroes", False):
-                self.output(
-                    "You have no characters unlocked. If you did not set starting heroes, create your YAML with the "
-                    "Player Options generator (https://archipelagobrad.github.io/deadlockipelago/index.html) and "
-                    "regenerate the multiworld so you receive Unlock items."
-                )
-                self._warned_no_heroes = True
+            # Defer the "no heroes" check so initial ReceivedItems (e.g. start_inventory) have time to arrive
+            if async_start:
+                async_start(_warn_if_no_heroes_after_delay(self), name="warn_no_heroes")
             return
         elif cmd == "ReceivedItems":
             # Spirits (MacGuffin) goal can be met by receiving items; check after each batch
@@ -731,6 +738,14 @@ class DeadlockContext(CommonContext):
 
     # ---------- persistence ----------
     def _compute_save_path(self, seed_name: Optional[str] = None) -> Path:
+        """Save path uses only seed and slot so it stays stable when server host/port or team changes."""
+        slot = self.auth or "no_slot"
+        seed = seed_name or self.seed_name or "unconnected"
+        base = f"deadlock__{_safe_filename(seed)}__{_safe_filename(slot)}"
+        return _get_save_dir() / f"{base}.json"
+
+    def _compute_legacy_save_path(self, seed_name: Optional[str] = None) -> Path:
+        """Old path (server, team, slot, seed) for one-time migration only."""
         server = self.server_address or "no_server"
         slot = self.auth or "no_slot"
         team = str(getattr(self, "team", "0"))
@@ -753,7 +768,6 @@ class DeadlockContext(CommonContext):
                     data = json.loads(unconnected_path.read_text(encoding="utf-8"))
                     migrated = DeadlockSave(**data)
                     migrated.seed_name = self.seed_name
-                    # start_date_local should remain the original start time the user began the seed flow
                     self.save = migrated
                     self._save_loaded_for_seed = True
                     self.save_save()
@@ -767,13 +781,23 @@ class DeadlockContext(CommonContext):
                 self._save_loaded_for_seed = True
                 return
 
+            # One-time migration from old path (server__team__slot__seed) if it exists
+            legacy_path = self._compute_legacy_save_path()
+            if legacy_path.exists():
+                data = json.loads(legacy_path.read_text(encoding="utf-8"))
+                self.save = DeadlockSave(**data)
+                self.save.seed_name = self.seed_name
+                self._save_loaded_for_seed = True
+                self.save_save()
+                self.output(f"Migrated Deadlock save to new path (seed+slot): {path.name}")
+                return
+
             # Create new
             self.save = DeadlockSave(seed_name=self.seed_name)
             self._save_loaded_for_seed = True
             self.save_save()
         except Exception as e:
             self.output(f"Failed to load/create save ({path}): {e}")
-            # still mark loaded to prevent spam
             self._save_loaded_for_seed = True
 
     def save_save(self) -> None:
