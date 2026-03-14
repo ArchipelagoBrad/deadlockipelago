@@ -174,9 +174,9 @@ def _launch_deadlock_client(*args: str) -> None:
 
 def _register_deadlock_icon() -> str:
     """
-    0.6.6 LauncherComponents expects Component.icon to be a key in LauncherComponents.icon_paths,
-    not a filepath. So we extract our PNG to a real file and register it.
-    Returns the icon key to use (e.g. "deadlock").
+    Register our icon with LauncherComponents using the apworld format so the launcher
+    loads it from inside the apworld (no cache folder or filesystem extraction needed).
+    See: LauncherComponents.py comment re "ap:module.name/path/to/file.png"
     """
     try:
         from worlds import LauncherComponents
@@ -184,32 +184,8 @@ def _register_deadlock_icon() -> str:
         return "icon"  # fallback to default
 
     icon_key = "deadlock"
-
-    # Already registered?
-    if icon_key in LauncherComponents.icon_paths:
-        return icon_key
-
-    # Pull bytes from inside the apworld (works with zipimport)
-    import pkgutil
-    data = pkgutil.get_data(__name__, "icons/deadlock.png")
-    if not data:
-        return "icon"
-
-    # Write to a stable cache location
-    import pathlib
-    try:
-        from Utils import user_path  # typical in AP builds
-        out_dir = pathlib.Path(user_path("Cache", "apworld_icons"))
-    except Exception:
-        # fallback: current working dir
-        out_dir = pathlib.Path(".") / "apworld_icons"
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "deadlock.png"
-    out_path.write_bytes(data)
-
-    # Register key -> filesystem path
-    LauncherComponents.icon_paths[icon_key] = str(out_path)
+    if icon_key not in LauncherComponents.icon_paths:
+        LauncherComponents.icon_paths[icon_key] = f"ap:{__name__}/icons/deadlock.png"
     return icon_key
 
 def _register_launcher_component() -> None:

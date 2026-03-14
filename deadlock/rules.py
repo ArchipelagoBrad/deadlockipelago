@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from worlds.generic.Rules import set_rule
+from worlds.generic.Rules import set_rule, add_item_rule
 from BaseClasses import MultiWorld
 
 
@@ -23,3 +23,6 @@ def set_deadlock_rules(multiworld: MultiWorld, player: int) -> None:
         if hero:
             required_item = f"Unlock {hero}"
             set_rule(loc, lambda state, item=required_item: state.has(item, player))
+            # Prevent Unlock [Hero] from being placed in this hero's win locations,
+            # so the hero is never locked behind their own checks.
+            add_item_rule(loc, lambda item, unlock_name=required_item: item.name != unlock_name)
