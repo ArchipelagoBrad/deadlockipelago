@@ -5,6 +5,7 @@ import csv
 import json
 import logging
 import re
+import ssl
 import urllib.request
 from urllib.error import HTTPError
 from dataclasses import dataclass, asdict
@@ -25,6 +26,27 @@ except Exception:
     ClientStatus = None  # type: ignore[misc, assignment]
 
 logger = logging.getLogger("Client")
+
+_api_tls_context: ssl.SSLContext | None = None
+
+
+def _deadlock_api_tls_context() -> ssl.SSLContext:
+    """
+    TLS context for https://api.deadlock-api.com requests.
+    Prefer certifi's Mozilla CA bundle so native Linux/AppImage Python builds
+    that lack a system CA path still verify public API certificates.
+    """
+    global _api_tls_context
+    if _api_tls_context is not None:
+        return _api_tls_context
+    try:
+        import certifi
+
+        _api_tls_context = ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        _api_tls_context = ssl.create_default_context()
+    return _api_tls_context
+
 
 # Full SteamID3 e.g. [U:1:123456789], or digits-only e.g. 123456789
 STEAMID3_FULL_RE = re.compile(r"^\[U:1:(\d+)\]$")
@@ -267,7 +289,8 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
 
     def _fetch() -> bytes:
         req = urllib.request.Request(api_url, headers={"User-Agent": "Archipelago-Deadlock-Client/1.0"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        ctx = _deadlock_api_tls_context()
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
             return resp.read()
 
     try:

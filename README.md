@@ -25,6 +25,7 @@ An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a 
 - **Deadlock** - the game (Steam).
 - **Steam account** - your SteamID3 is used to identify you in match data when submitting games.
 - **Python 3.10+** - only if you run the world or client from source (e.g. development or non-apworld install).
+- **[certifi](https://pypi.org/project/certifi/)** - the Deadlock client uses it when present so HTTPS to `api.deadlock-api.com` verifies using a bundled CA list (helps some **native Linux** Archipelago builds). The Archipelago install normally already includes `certifi`.
 - **[Deadlock API Ingest](https://github.com/deadlock-api/deadlock-api-ingest)** *(strongly recommended)* - see below. Without it, match data may be missing when you run `/submit_match`, causing failures or long waits.
 
 ---
