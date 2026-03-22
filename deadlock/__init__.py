@@ -88,6 +88,24 @@ class DeadlockWorld(World):
     def create_regions(self) -> None:
         create_regions_and_locations(self, self._filtered_location_defs)
 
+    def _max_spirits_placeable(self) -> int:
+        """MacGuffin slots ~= non-Goal check locations (Goal holds locked Victory)."""
+        return len(self._filtered_location_defs) - 1
+
+    def _effective_spirits_to_unlock_final(self) -> int:
+        """
+        Spirits required before final character counts as unlocked (Win with Character).
+        Capped so the threshold is reachable before opening that hero's three win checks
+        (those checks may contain Spirits). Matches what we send in slot_data.
+        """
+        max_sp = self._max_spirits_placeable()
+        v = min(self.options.spirits_to_unlock_final.value, max_sp)
+        if self.options.game_mode == GameMode.option_street_brawl:
+            v = min(v, 143)
+        if self.options.goal_type == GoalType.option_win_with_character:
+            v = min(v, max(1, max_sp - 3))
+        return max(1, v)
+
     def _goal_location_name(self) -> str:
         if self.options.goal_type == GoalType.option_unique_characters:
             x = self.options.unique_characters_to_win.value
@@ -105,9 +123,9 @@ class DeadlockWorld(World):
     def fill_slot_data(self) -> Mapping[str, Any]:
         """Data sent to the client in the Connected packet so /goal and win condition use the correct options."""
         # Max Spirits = number of check locations (pool size); Goal has locked Victory so pool size is locations - 1
-        max_spirits = len(self._filtered_location_defs) - 1
+        max_spirits = self._max_spirits_placeable()
         spirits_to_win = min(self.options.spirits_to_win.value, max_spirits)
-        spirits_to_unlock_final = min(self.options.spirits_to_unlock_final.value, max_spirits)
+        spirits_to_unlock_final = self._effective_spirits_to_unlock_final()
         final_character_index = self.options.final_character.value
         final_character_name = _FINAL_CHARACTER_NAMES[final_character_index] if final_character_index < len(_FINAL_CHARACTER_NAMES) else ""
         return {
@@ -145,7 +163,7 @@ class DeadlockWorld(World):
         self.multiworld.itempool += pool
 
     def set_rules(self) -> None:
-        set_deadlock_rules(self.multiworld, self.player)
+        set_deadlock_rules(self)
 
         goal_loc = self.multiworld.get_location("Goal", self.player)
         goal_loc.place_locked_item(self.create_item(VICTORY_ITEM_NAME))

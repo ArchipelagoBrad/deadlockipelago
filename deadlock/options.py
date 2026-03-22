@@ -60,7 +60,12 @@ class SpiritsToWin(Range):
 
 
 class SpiritsToUnlockFinal(Range):
-    """Number of Spirits (MacGuffin) you must collect to unlock your final character (Win with Character goal)."""
+    """Number of Spirits (MacGuffin) you must collect to unlock your final character (Win with Character goal).
+
+    The world caps this below the usual Spirits max by three: the final hero's three win checks require
+    this many Spirits first and may themselves contain Spirits, so the threshold must be reachable using
+    other locations only.
+    """
     display_name = "Spirits to Unlock Final Character"
     range_start = 1
     range_end = 162

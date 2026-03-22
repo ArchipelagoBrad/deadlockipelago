@@ -166,6 +166,11 @@
     return excludeHard ? `${mode} (excl. hard)` : mode;
   }
 
+  /** Max for "Spirits to unlock final character" — three fewer than general Spirits max (final hero win checks). */
+  function getSpiritsUnlockMax() {
+    return Math.max(1, getSpiritsMax() - 3);
+  }
+
   function updateSpiritsDisplay() {
     const max = getSpiritsMax();
     const val = Math.min(max, Math.max(1, parseInt(spiritsSlider.value, 10) || 1));
@@ -223,9 +228,14 @@
   }
 
   function updateSpiritsUnlockDisplay() {
-    const max = getSpiritsMax();
-    const val = Math.min(max, parseInt(spiritsUnlockSlider.value, 10) || 10);
+    const max = getSpiritsUnlockMax();
+    const val = Math.min(max, Math.max(1, parseInt(spiritsUnlockSlider.value, 10) || 10));
+    spiritsUnlockSlider.value = val;
     spiritsUnlockDisplay.textContent = val;
+    const hintEl = document.getElementById("spirits_to_unlock_final_hint");
+    if (hintEl) {
+      hintEl.textContent = `Collect this many Spirits before your final character's win checks count. Max ${max} (${getSpiritsMaxLabel()}; three less than total Spirit slots so those checks stay reachable).`;
+    }
   }
 
   function updateGoalDependentVisibility() {
@@ -237,7 +247,7 @@
     fieldWinWithChar.classList.toggle("hidden", goal !== "win_with_character");
     if (goal === "spirits") updateSpiritsSliderMax();
     if (goal === "win_with_character") {
-      spiritsUnlockSlider.max = getSpiritsMax();
+      spiritsUnlockSlider.max = getSpiritsUnlockMax();
       updateSpiritsUnlockDisplay();
       updateFinalCharacterDropdown();
     }
@@ -245,12 +255,13 @@
 
   function updateAllSpiritsLimits() {
     const max = getSpiritsMax();
+    const unlockMax = getSpiritsUnlockMax();
     spiritsSlider.max = max;
-    spiritsUnlockSlider.max = max;
+    spiritsUnlockSlider.max = unlockMax;
     const spiritsVal = parseInt(spiritsSlider.value, 10) || 10;
     const unlockVal = parseInt(spiritsUnlockSlider.value, 10) || 10;
     if (spiritsVal > max) spiritsSlider.value = max;
-    if (unlockVal > max) spiritsUnlockSlider.value = max;
+    if (unlockVal > unlockMax) spiritsUnlockSlider.value = unlockMax;
     if (goalTypeSelect.value === "spirits") updateSpiritsDisplay();
     if (goalTypeSelect.value === "win_with_character") updateSpiritsUnlockDisplay();
   }
@@ -280,6 +291,7 @@
   });
   updateGoalDependentVisibility();
   updateSpiritsDisplay();
+  updateAllSpiritsLimits();
 
   /**
    * @param {string | null} excludeFromRandomPool - When Random starters and Win with Character goal, exclude this hero (itemName) so the final character is not a starter.
@@ -312,7 +324,7 @@
     const totalWinsNum = Math.min(100, Math.max(1, parseInt(document.getElementById("total_wins_to_win").value, 10) || 25));
     const spiritsMax = getSpiritsMax();
     const spiritsNum = Math.min(spiritsMax, Math.max(1, parseInt(document.getElementById("spirits_to_win").value, 10) || 10));
-    const spiritsUnlockMax = getSpiritsMax();
+    const spiritsUnlockMax = getSpiritsUnlockMax();
     const spiritsUnlockNum = Math.min(spiritsUnlockMax, Math.max(1, parseInt(document.getElementById("spirits_to_unlock_final").value, 10) || 10));
     const finalCharSelectValue = document.getElementById("final_character").value;
 
