@@ -509,7 +509,7 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
 
     # Street Brawl-only checks (match must be game_mode 4)
     if match_game_mode == GAME_MODE_STREET_BRAWL:
-        street_brawl_rounds = data.get("street_brawl_rounds") or []
+        street_brawl_rounds = match_info.get("street_brawl_rounds") or []
         rounds_won_this_match = sum(1 for r in street_brawl_rounds if isinstance(r, dict) and r.get("winning_team") == player_team)
         round_win_under_90 = False
         round_win_under_120 = False
