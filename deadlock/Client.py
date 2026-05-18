@@ -277,7 +277,18 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
         if code == 404:
             ctx.output("Match not found (404). Double-check that the match ID is correct, or wait 5 minutes to allow the API time to ingest the match.")
         elif code == 429:
-            ctx.output("API rate limit reached (429). Please try again in an hour — the API allows 5 requests per hour.")
+            error_data = json.loads(e.read().decode("utf-8"))
+            quota =  error_data.get("error", {}).get("quota", {})
+            limit = quota.get("limit")
+            period = quota.get("period")
+            if period < 60:
+                ctx.output(f"API rate limit reached (429). Please try again in {period} second(s) — the API allows {limit} requests per {period} second(s).")
+            elif period >= 60 and period < 3600:
+                minutes = period // 60
+                ctx.output(f"API rate limit reached (429). Please try again in {minutes} minute(s) — the API allows {limit} requests per {minutes} minute(s).")
+            else:
+                hours = period // 3600 
+                ctx.output(f"API rate limit reached (429). Please try again in {hours} hour(s) — the API allows {limit} requests per {hours} hour(s).")
         elif code == 503:
             ctx.output("API temporarily unavailable (503). Please wait 5 minutes and try again.")
         else:
