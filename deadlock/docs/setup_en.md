@@ -62,7 +62,7 @@ The client fetches match data from **api.deadlock-api.com**. If your matches are
 As mentioned above if the site wasn't ingested into the API `/submit_match` will fail. I personally had the above API Ingest Tool ingest matches extremely slowly or not at all. What worked better for me is manually uploading my matches to the ingest directly.
 You can submit the files directly at Deadlock API's [Data Ingest](https://deadlock-api.com/ingest-cache). The folder you submit's path is in the Directory Location Guide section of the page with folder paths for each OS.
 > **NOTE**
-> You upload the whole folder so it does upload gets all matches stored. The stored matches list get updated every time you open your match history.
+> You upload the whole folder so it does upload all the matches currently stored. The stored matches list get updated every time you open your match history.
 
 #### ISSUES WITH THIS METHOD
 
