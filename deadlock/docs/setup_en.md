@@ -51,7 +51,7 @@ Replace with your own SteamID3 (e.g. from [steamid.io](https://steamid.io/)). Th
 
 ---
 
-## 6. Brad Recommended: Install Deadlock API Ingest
+## 6. Brad Primary Recommended Way: Install Deadlock API Ingest
 
 The client fetches match data from **api.deadlock-api.com**. If your matches are not submitted to that API, `/submit_match` will fail or take a long time.
 
