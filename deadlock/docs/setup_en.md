@@ -51,13 +51,13 @@ Replace with your own SteamID3 (e.g. from [steamid.io](https://steamid.io/)). Th
 
 ---
 
-## 6. Brad Primary Recommended Way: Install Deadlock API Ingest
+## 6. Brad's Primary Recommended Way: Install Deadlock API Ingest
 
 The client fetches match data from **api.deadlock-api.com**. If your matches are not submitted to that API, `/submit_match` will fail or take a long time.
 
 **[Deadlock API Ingest](https://github.com/deadlock-api/deadlock-api-ingest)** runs in the background and submits your matches to the API automatically. Install it once (Windows, Linux, Docker, or NixOS) and leave it running. See the linked repo for install scripts.
 
-## 6.5. GreenJ Preferred Method: Submit matches info manually through Deadlock API Data Ingest Site.
+## 6.5. GreenJ's Preferred Method: Submit matches info manually through Deadlock API Data Ingest Site.
 
 As mentioned above if the site wasn't ingested into the API `/submit_match` will fail. I personally had the above API Ingest Tool ingest matches extremely slowly or not at all. What worked better for me is manually uploading my matches to the ingest directly.
 You can submit the files directly at Deadlock API's [Data Ingest](https://deadlock-api.com/ingest-cache). The folder you submit's path is in the Directory Location Guide section of the page with folder paths for each OS.
