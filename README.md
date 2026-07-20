@@ -1,7 +1,7 @@
 # NOTICE
 This is a updated fork of the original [Deadlockipelago from ArchipelagoBrad](https://github.com/ArchipelagoBrad/deadlockipelago) this fixes some accidental impossble checks. I did not develop the project. I currently recommend using this fork as Brad has not merged these fixes into the original project yet once the project is merged use either or it doesn't matter. 
 ## Poptracker 
-[Deadlockipelago Poptracker](https://github.com/GreenestJ/deadlockipelago-poptracker) Now Available (V0.1 Only has manual hero tracking currently)
+[Deadlockipelago Poptracker](https://github.com/GreenestJ/deadlockipelago-poptracker) Now Available (V0.1 Only has manual hero tracking currently so its not recommended to use yet)
 
 <p align="center">
   <img src="./deadlock-portraits/deadlock_logo.png" alt="Deadlock Archipelago" width="600">
