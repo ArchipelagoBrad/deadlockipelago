@@ -281,7 +281,9 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
             quota =  error_data.get("error", {}).get("quota", {})
             limit = quota.get("limit")
             period = quota.get("period")
-            if period < 60:
+            if limit >= 500:
+                ctx.output(f"API rate limit reached (429). The limit ({limit}) is a high number so it's most likely the global rate limit was hit. Please try again later.")
+            elif period < 60:
                 ctx.output(f"API rate limit reached (429). Please try again in {period} second(s) — the API allows {limit} requests per {period} second(s).")
             elif period >= 60 and period < 3600:
                 minutes = period // 60
