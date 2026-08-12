@@ -281,15 +281,17 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
             quota =  error_data.get("error", {}).get("quota", {})
             limit = quota.get("limit")
             period = quota.get("period")
-            if period < 60:
-                period_message = f"{period} second(s)"
-            elif 60 <= period < 3600:
-                period_message = f"{period // 60} minutes(s)"
-            elif period >= 3600:
-                period_message = f"{period // 3600} hour(s)"
+            if limit >= 500:
+                ctx.output(f"API rate limit reached (429). The limit ({limit}) is a high number so it's most likely the global rate limit was hit. Please try again later.")
+            elif period < 60:
+                ctx.output(f"API rate limit reached (429). Please try again in {period} second(s) — the API allows {limit} requests per {period} second(s).")
+            elif period >= 60 and period < 3600:
+                minutes = period // 60
+                ctx.output(f"API rate limit reached (429). Please try again in {minutes} minute(s) — the API allows {limit} requests per {minutes} minute(s).")
             else:
-                period_message = "unknown time period"
-            ctx.output(f"API rate limit reached (429). Please try again in {period_message} — the API allows {limit} requests per {period_message}.")
+                hours = period // 3600 
+                ctx.output(f"API rate limit reached (429). Please try again in {hours} hour(s) — the API allows {limit} requests per {hours} hour(s).")
+
         elif code == 503:
             ctx.output("API temporarily unavailable (503). Please wait 5 minutes and try again.")
         else:
@@ -381,7 +383,8 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
     player_kills = int(player.get("kills") or 0)
     player_assists = int(player.get("assists") or 0)
     net_worth = int(player.get("net_worth") or 0)
-    accolade_urn = _accolade_value(player, 13)  # returned_idol / Soul Urn
+    # Old Urn Code. Doesn't work anymore so not needed but kept just in-case it starts getting used again.
+    # accolade_urn = _accolade_value(player, 13)  # returned_idol / Soul Urn
     accolade_neutrals = _accolade_value(player, 7)   # neutral_last_hits
     accolade_jackpots = _accolade_value(player, 14)  # sinners_sacrifice_jackpot
 
@@ -394,6 +397,7 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
     # Damage and stats from final snapshot (stats[-1]); top-level denies/last_hits are match totals
     stats_list = player.get("stats") or []
     last_stat = stats_list[-1] if stats_list else {}
+    match_urn_souls = int(last_stat.get("gold_treasure") or 0) # How many souls earned by urn (If > 0 means team won at least 1 urn fight)
     match_boss_damage = int(last_stat.get("boss_damage") or 0)
     match_player_damage = int(last_stat.get("player_damage") or 0)
     match_denies = int(player.get("denies") or 0)
@@ -451,7 +455,9 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
 
     # Standard-only: Soul Urn, neutrals, Sinner's (disabled in Street Brawl seeds)
     if match_game_mode != GAME_MODE_STREET_BRAWL:
-        if accolade_urn >= 1:
+        # old urn If statement
+        # if accolade_urn >= 1:
+        if match_urn_souls >= 1:
             _add_if_earned("Deliver the Soul Urn")
         for threshold in (1, 5, 10, 25, 50, 100):
             if neutral_camps_after >= threshold:
