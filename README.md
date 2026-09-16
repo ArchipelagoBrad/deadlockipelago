@@ -1,13 +1,11 @@
-# NOTICE
-This is a updated fork of the original [Deadlockipelago from ArchipelagoBrad](https://github.com/ArchipelagoBrad/deadlockipelago) this fixes some accidental impossble checks. I did not develop the project. I currently recommend using this fork as Brad has not merged these fixes into the original project yet once the project is merged use either or it doesn't matter. 
-## Poptracker 
-[Deadlockipelago Poptracker](https://github.com/GreenestJ/deadlockipelago-poptracker) Now Available (V0.1 Only has manual hero tracking currently so its not recommended to use yet)
-
 <p align="center">
   <img src="./deadlock-portraits/deadlock_logo.png" alt="Deadlock Archipelago" width="600">
 </p>
 
 An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a meta-progression randomizer where locations are earned by playing matches (hero wins, match milestones, accolades) and items unlock heroes you can use. Complete your goal (e.g. win with N unique characters, N total wins, collect N **Spirits**, or **Win with Character** – collect Spirits to unlock a chosen hero, then win one match with them) to finish the seed. Supports **Standard** and **Street Brawl** game modes with mode-specific checks, and an option to **exclude hard locations** for a lighter run.
+
+## Poptracker 
+[Deadlockipelago Poptracker](https://github.com/GreenestJ/deadlockipelago-poptracker) Now Available (V0.1 Only has manual hero tracking currently so its not recommended to use yet)
 
 ---
 
