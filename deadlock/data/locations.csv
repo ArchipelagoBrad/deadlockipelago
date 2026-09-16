@@ -143,7 +143,7 @@ Win 25 matches (Reward 2/5),Awarded upon winning the amount of matches specified
 Win 25 matches (Reward 3/5),Awarded upon winning the amount of matches specified (cumulative since Archipelago start),hard,,,
 Win 25 matches (Reward 4/5),Awarded upon winning the amount of matches specified (cumulative since Archipelago start),hard,,,
 Win 25 matches (Reward 5/5),Awarded upon winning the amount of matches specified (cumulative since Archipelago start),hard,,,
-Deliver the Soul Urn,Awarded upon the player delivering the soul urn themselves.,normal,,The player has to deliver the urn themselves.,standard
+Deliver the Soul Urn,Awarded upon winning an urn fight.,normal,,The team in general has to win urn. You do not have to contribute to do fight at all.,standard
 Kill 1 neutral camp,Awarded upon reaching the number of neutral camp last hits specified (cumulative since Archipelago start).,easy,,,standard
 Kill 5 neutral camps,Awarded upon reaching the number of neutral camp last hits specified (cumulative since Archipelago start).,easy,,,standard
 Kill 10 neutral camps,Awarded upon reaching the number of neutral camp last hits specified (cumulative since Archipelago start).,normal,,,standard
