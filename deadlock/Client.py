@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import urllib.request
+import ssl
 from urllib.error import HTTPError
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -30,6 +31,26 @@ logger = logging.getLogger("Client")
 STEAMID3_FULL_RE = re.compile(r"^\[U:1:(\d+)\]$")
 STEAMID3_DIGITS_RE = re.compile(r"^\d+$")
 
+'''
+Linux Only Code.
+Why does python not have multiline comments 
+_api_tls_context: ssl.SSLContext | None = None
+def _deadlock_api_tls_context() -> ssl.SSLContext:
+    """
+    TLS context for https://api.deadlock-api.com requests.
+    Prefer certifi's Mozilla CA bundle so native Linux/AppImage Python builds
+    that lack a system CA path still verify public API certificates.
+    """
+    global _api_tls_context
+    if _api_tls_context is not None:
+        return _api_tls_context
+    try:
+        import certifi
+        _api_tls_context = ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        _api_tls_context = ssl.create_default_context()
+    return _api_tls_context
+'''
 
 def _steamid3_to_digits(value: str) -> Optional[str]:
     """Accept [U:1:123456789] or 123456789; return only the digits or None if invalid."""
@@ -269,7 +290,11 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
         req = urllib.request.Request(api_url, headers={"User-Agent": "Archipelago-Deadlock-Client/1.0"})
         with urllib.request.urlopen(req, timeout=30) as resp:
             return resp.read()
-
+        '''
+        Linux Only
+        ctx = _deadlock_api_tls_context()
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+        '''
     try:
         raw = await asyncio.to_thread(_fetch)
     except HTTPError as e:
