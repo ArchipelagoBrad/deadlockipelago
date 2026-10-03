@@ -4,6 +4,9 @@
 
 An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a meta-progression randomizer where locations are earned by playing matches (hero wins, match milestones, accolades) and items unlock heroes you can use. Complete your goal (e.g. win with N unique characters, N total wins, collect N **Spirits**, or **Win with Character** – collect Spirits to unlock a chosen hero, then win one match with them) to finish the seed. Supports **Standard** and **Street Brawl** game modes with mode-specific checks, and an option to **exclude hard locations** for a lighter run.
 
+## Poptracker 
+[Deadlockipelago Poptracker](https://github.com/GreenestJ/deadlockipelago-poptracker) Now Available (V0.1 Only has manual hero tracking currently so its not recommended to use yet)
+
 ---
 
 ## Contents
@@ -25,8 +28,8 @@ An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a 
 - **Deadlock** - the game (Steam).
 - **Steam account** - your SteamID3 is used to identify you in match data when submitting games.
 - **Python 3.10+** - only if you run the world or client from source (e.g. development or non-apworld install).
-- **[certifi](https://pypi.org/project/certifi/)** - the Deadlock client uses it when present so HTTPS to `api.deadlock-api.com` verifies using a bundled CA list (helps some **native Linux** Archipelago builds). The Archipelago install normally already includes `certifi`.
-- **[Deadlock API Ingest](https://github.com/deadlock-api/deadlock-api-ingest)** *(strongly recommended)* - see below. Without it, match data may be missing when you run `/submit_match`, causing failures or long waits.
+- **[certifi](https://pypi.org/project/certifi/)** (**Linux Only**) - the Deadlock client uses it when present so HTTPS to `api.deadlock-api.com` verifies using a bundled CA list (helps some **native Linux** Archipelago builds). The Archipelago install normally already includes `certifi`.
+- **[Deadlock API Ingest](https://github.com/deadlock-api/deadlock-api-ingest)** *(strongly recommended not required)* - see below. Without it, match data may be missing when you run `/submit_match`, causing failures or long waits. (Setup Step 6.5 has alternate way to upload matches to the API)
 
 ---
 
@@ -138,7 +141,7 @@ Locations are checked by the client when you submit matches (`/submit_match <mat
 | **Hero wins**          | Win a game as [Hero] (Reward 1/3, 2/3, 3/3) for each of the 38 heroes. Requires that hero to be unlocked.                                                        |
 | **Matches played**     | Complete 5, 10, 20, 50 matches.                                                                                                                                  |
 | **Wins**               | Win 1 match; Win 5 / 10 / 15 / 20 / 25 matches (Reward 1/5 through 5/5 at each tier).                                                                            |
-| **Soul Urn**           | Deliver the Soul Urn (in-game accolade). *Standard only.*                                                                                                        |
+| **Soul Urn**           | ~~Deliver the Soul Urn (in-game accolade).~~ Team claims Urn (Win 1 Urn Fight). *Standard only.*                                                                                                        |
 | **Neutral camps**      | Kill 1, 5, 10, 25, 50, 100 neutral camps. *Standard only.*                                                                                                       |
 | **Sinner's Sacrifice** | Jackpots at 25, 50, 100, 250. *Standard only.*                                                                                                                   |
 | **Kills**              | Kill 1, 10, 25, 50, 100, 250 enemy heroes.                                                                                                                       |
@@ -199,6 +202,7 @@ For Archipelago docs, see the [Archipelago documentation](https://github.com/Arc
 
 ## Credits
 
+- **GreenJ/GreenestJ:** Code maintenence & Poptracker.
 - **ArchipelagoBrad:** Archipelago client integration & logic
 - **Manuel Hexe:** Developing the [unofficial Deadlock API](https://deadlock-api.com/) ([Please support him here!](https://www.patreon.com/manuelhexe))
 

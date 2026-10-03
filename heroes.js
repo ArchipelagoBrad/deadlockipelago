@@ -30,6 +30,7 @@ const HEROES = [
   { itemName: "Unlock Paige", displayName: "Paige" },
   { itemName: "Unlock Paradox", displayName: "Paradox" },
   { itemName: "Unlock Pocket", displayName: "Pocket" },
+  { itemName: "Unlock Rat King", displayName: "Rat King", portraitFile: "88px-ratking_card.png"},
   { itemName: "Unlock Rem", displayName: "Rem" },
   { itemName: "Unlock Seven", displayName: "Seven" },
   { itemName: "Unlock Shiv", displayName: "Shiv" },
