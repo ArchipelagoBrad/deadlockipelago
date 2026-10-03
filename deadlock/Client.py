@@ -31,9 +31,6 @@ logger = logging.getLogger("Client")
 STEAMID3_FULL_RE = re.compile(r"^\[U:1:(\d+)\]$")
 STEAMID3_DIGITS_RE = re.compile(r"^\d+$")
 
-'''
-Linux Only Code.
-Why does python not have multiline comments 
 _api_tls_context: ssl.SSLContext | None = None
 def _deadlock_api_tls_context() -> ssl.SSLContext:
     """
@@ -50,7 +47,6 @@ def _deadlock_api_tls_context() -> ssl.SSLContext:
     except Exception:
         _api_tls_context = ssl.create_default_context()
     return _api_tls_context
-'''
 
 def _steamid3_to_digits(value: str) -> Optional[str]:
     """Accept [U:1:123456789] or 123456789; return only the digits or None if invalid."""
@@ -288,13 +284,12 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
 
     def _fetch() -> bytes:
         req = urllib.request.Request(api_url, headers={"User-Agent": "Archipelago-Deadlock-Client/1.0"})
+        '''Non Linux Code
         with urllib.request.urlopen(req, timeout=30) as resp:
             return resp.read()
         '''
-        Linux Only
         ctx = _deadlock_api_tls_context()
         with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
-        '''
     try:
         raw = await asyncio.to_thread(_fetch)
     except HTTPError as e:
