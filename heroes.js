@@ -7,6 +7,7 @@
 const HEROES = [
   { itemName: "Unlock Abrams", displayName: "Abrams" },
   { itemName: "Unlock Apollo", displayName: "Apollo" },
+  { itemName: "Unlock Baba", displayName: "Baba", portraitFile: "88px_Baba_card.png" },
   { itemName: "Unlock Bebop", displayName: "Bebop" },
   { itemName: "Unlock Billy", displayName: "Billy" },
   { itemName: "Unlock Calico", displayName: "Calico" },
