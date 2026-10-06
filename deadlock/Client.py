@@ -420,6 +420,7 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
     # Damage and stats from final snapshot (stats[-1]); top-level denies/last_hits are match totals
     stats_list = player.get("stats") or []
     last_stat = stats_list[-1] if stats_list else {}
+    match_treasure_souls = int(last_stat.get("gold_treasure") or 0) # How many souls "Treasure" sources (Rift/Urn)
     match_boss_damage = int(last_stat.get("boss_damage") or 0)
     match_player_damage = int(last_stat.get("player_damage") or 0)
     match_denies = int(player.get("denies") or 0)
@@ -477,8 +478,9 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
 
     # Standard-only: Soul Urn, neutrals, Sinner's (disabled in Street Brawl seeds)
     if match_game_mode != GAME_MODE_STREET_BRAWL:
-        if accolade_urn >= 1:
-            _add_if_earned("Deliver the Soul Urn")
+        #if accolade_urn >= 1:
+        if match_treasure_souls >= 1:
+            _add_if_earned("Deliver the Soul Urn/Capture Rift")
         for threshold in (1, 5, 10, 25, 50, 100):
             if neutral_camps_after >= threshold:
                 _add_if_earned(f"Kill {threshold} neutral camp" + ("s" if threshold != 1 else ""))

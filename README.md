@@ -4,9 +4,6 @@
 
 An [Archipelago](https://archipelago.gg/) world and client for **Deadlock** - a meta-progression randomizer where locations are earned by playing matches (hero wins, match milestones, accolades) and items unlock heroes you can use. Complete your goal (e.g. win with N unique characters, N total wins, collect N **Spirits**, or **Win with Character** – collect Spirits to unlock a chosen hero, then win one match with them) to finish the seed. Supports **Standard** and **Street Brawl** game modes with mode-specific checks, and an option to **exclude hard locations** for a lighter run.
 
-## Poptracker 
-[Deadlockipelago Poptracker](https://github.com/GreenestJ/deadlockipelago-poptracker) Now Available (V0.1 Only has manual hero tracking currently so its not recommended to use yet)
-
 ---
 
 ## Contents
@@ -141,7 +138,7 @@ Locations are checked by the client when you submit matches (`/submit_match <mat
 | **Hero wins**          | Win a game as [Hero] (Reward 1/3, 2/3, 3/3) for each of the 38 heroes. Requires that hero to be unlocked.                                                        |
 | **Matches played**     | Complete 5, 10, 20, 50 matches.                                                                                                                                  |
 | **Wins**               | Win 1 match; Win 5 / 10 / 15 / 20 / 25 matches (Reward 1/5 through 5/5 at each tier).                                                                            |
-| **Soul Urn**           | ~~Deliver the Soul Urn (in-game accolade).~~ Team claims Urn (Win 1 Urn Fight). *Standard only.*                                                                                                        |
+| **Soul Urn/Rift**           | ~~Deliver the Soul Urn (in-game accolade).~~ Claim Urn Souls or Capture/Win a Rift. *Standard only.*                                                                                                        |
 | **Neutral camps**      | Kill 1, 5, 10, 25, 50, 100 neutral camps. *Standard only.*                                                                                                       |
 | **Sinner's Sacrifice** | Jackpots at 25, 50, 100, 250. *Standard only.*                                                                                                                   |
 | **Kills**              | Kill 1, 10, 25, 50, 100, 250 enemy heroes.                                                                                                                       |
