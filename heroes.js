@@ -37,6 +37,7 @@ const HEROES = [
   { itemName: "Unlock Shiv", displayName: "Shiv" },
   { itemName: "Unlock Silver", displayName: "Silver" },
   { itemName: "Unlock Sinclair", displayName: "Sinclair" },
+  { itemName: "Unlock Solomon", displayName: "Solomon", portraitFile: "88px-chessmaster_card.png"},
   { itemName: "Unlock Venator", displayName: "Venator" },
   { itemName: "Unlock Victor", displayName: "Victor" },
   { itemName: "Unlock Vindicta", displayName: "Vindicta" },
