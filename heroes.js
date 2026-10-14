@@ -12,7 +12,7 @@ const HEROES = [
   { itemName: "Unlock Billy", displayName: "Billy" },
   { itemName: "Unlock Calico", displayName: "Calico" },
   { itemName: "Unlock Celeste", displayName: "Celeste" },
-  { itemName: "Unlock Deadman Danny", displayName: "Deadman Danny", portraitFile: "88px_deadpack_card.png"}
+  { itemName: "Unlock Deadman Danny", displayName: "Deadman Danny", portraitFile: "88px_deadpack_card.png"},
   { itemName: "Unlock Doorman", displayName: "Doorman", portraitFile: "88px-The_Doorman_card.png" },
   { itemName: "Unlock Drifter", displayName: "Drifter" },
   { itemName: "Unlock Dynamo", displayName: "Dynamo" },
