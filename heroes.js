@@ -42,6 +42,7 @@ const HEROES = [
   { itemName: "Unlock Venator", displayName: "Venator" },
   { itemName: "Unlock Victor", displayName: "Victor" },
   { itemName: "Unlock Vindicta", displayName: "Vindicta" },
+  { itemName: "Unlock Violet", displayName: "Violet", portraitFile: "88px_artist_card.png"},
   { itemName: "Unlock Viscous", displayName: "Viscous" },
   { itemName: "Unlock Vyper", displayName: "Vyper" },
   { itemName: "Unlock Warden", displayName: "Warden" },
