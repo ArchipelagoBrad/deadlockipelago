@@ -144,10 +144,10 @@
 
   // Max Spirits = number of check locations (pool size). Depends on game mode and exclude hard locations.
   const SPIRITS_MAX = {
-    standard: 162,
-    standard_exclude_hard: 135,   // 162 - 27 hard locations in standard
-    street_brawl: 143,
-    street_brawl_exclude_hard: 119, // 143 - 24 hard locations in street brawl
+    standard: 174,
+    standard_exclude_hard: 147,   // 174 - 27 hard locations in standard
+    street_brawl: 155,
+    street_brawl_exclude_hard: 131, // 155 - 24 hard locations in street brawl
   };
 
   const excludeHardCheckbox = document.getElementById("exclude_hard_locations");
@@ -320,7 +320,7 @@
     const goalType = document.getElementById("goal_type").value;
     const gameMode = document.getElementById("game_mode").value;
     const excludeHard = document.getElementById("exclude_hard_locations").checked;
-    const uniqueNum = Math.min(38, Math.max(1, parseInt(document.getElementById("unique_characters_to_win").value, 10) || 10));
+    const uniqueNum = Math.min(44, Math.max(1, parseInt(document.getElementById("unique_characters_to_win").value, 10) || 10));
     const totalWinsNum = Math.min(100, Math.max(1, parseInt(document.getElementById("total_wins_to_win").value, 10) || 25));
     const spiritsMax = getSpiritsMax();
     const spiritsNum = Math.min(spiritsMax, Math.max(1, parseInt(document.getElementById("spirits_to_win").value, 10) || 10));
@@ -386,7 +386,7 @@ Deadlock:
     random: 0
     random-low: 0
     random-high: 0
-    random-range-1-38: 0
+    random-range-1-44: 0
 
   total_wins_to_win:
     ${totalWinsNum}: 50
