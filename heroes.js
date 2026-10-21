@@ -29,6 +29,7 @@ const HEROES = [
   { itemName: "Unlock Mina", displayName: "Mina" },
   { itemName: "Unlock Mirage", displayName: "Mirage" },
   { itemName: "Unlock Mo & Krill", displayName: "Mo & Krill" },
+  { itemName: "Unlock Nurse Harrow", displayName: "Nurse Harrow", portraitFile: "88px_nurse_card.png"},
   { itemName: "Unlock Paige", displayName: "Paige" },
   { itemName: "Unlock Paradox", displayName: "Paradox" },
   { itemName: "Unlock Pocket", displayName: "Pocket" },
