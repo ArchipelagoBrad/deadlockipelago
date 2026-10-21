@@ -39,7 +39,7 @@ class UniqueCharactersToWin(Range):
     """Number of unique characters you must win with to finish (1-38)."""
     display_name = "Unique Characters to Win"
     range_start = 1
-    range_end = 38
+    range_end = 44
     default = 10
 
 
@@ -55,7 +55,7 @@ class SpiritsToWin(Range):
     """Number of Spirits (MacGuffin) you must collect to finish. Max depends on game mode (Standard: 162, Street Brawl: 143)."""
     display_name = "Spirits to Win"
     range_start = 1
-    range_end = 162  # Standard max; Street Brawl is clamped to 143 in world
+    range_end = 174  # Standard max; Street Brawl is clamped to 143 in world
     default = 10
 
 
@@ -68,7 +68,7 @@ class SpiritsToUnlockFinal(Range):
     """
     display_name = "Spirits to Unlock Final Character"
     range_start = 1
-    range_end = 162
+    range_end = 171
     default = 10
 
 
