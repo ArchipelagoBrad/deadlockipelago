@@ -8,6 +8,7 @@ import re
 import urllib.request
 import ssl
 import sys
+import requests
 from urllib.error import HTTPError
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -282,7 +283,23 @@ async def _submit_match_impl(ctx: "DeadlockContext", match_id: str) -> None:
         ctx.output("SteamID3 not set. Use /set_player_id first.")
         return
 
-    api_url = f"https://api.deadlock-api.com/v1/matches/{match_id}/metadata"
+    # Tries to see if a local version of deadlock-api is running. 
+    # If it can find the match with it it'll use it.
+    # If not it'll fallback to deadlock-api.com
+    try:
+        # These codes shouldn't happen but just in case it does it'll bail and fallback to the actual deadlock-api
+        bail_codes = [429,404,503]
+        response = requests.get(
+            f"http://localhost:3000/v1/matches/{match_id}/metadata",
+            timeout=3
+        )
+        if response.status_code not in bail_codes:
+            api_url = f"http://localhost:3000/v1/matches/{match_id}/metadata"
+        else:
+            api_url = f"https://api.deadlock-api.com/v1/matches/{match_id}/metadata"
+    except requests.RequestException:
+        api_url = f"https://api.deadlock-api.com/v1/matches/{match_id}/metadata"
+    
 
     def _fetch() -> bytes:
         req = urllib.request.Request(api_url, headers={"User-Agent": "Archipelago-Deadlock-Client/1.0"})

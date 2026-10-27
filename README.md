@@ -45,6 +45,12 @@ Install it once (Windows, Linux, Docker, or NixOS) and leave it running; then pl
 
 ---
 
+## Docker Self-Hosting
+
+[Click Here for to go to the docker self-host guide](https://github.com/ArchipelagoBrad/deadlockipelago/blob/main/local-deadlock-api/Self_Host_Guide.md). Self hosting a docker container lets you run your own version of deadlock-api bypassing the api limit; however, hosting a docker image is more complex and uses extra resources (~100-300mb of RAM).
+
+---
+
 ## Quickstart Guide
 
 1. **Install the Deadlock world**
