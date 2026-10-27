@@ -9,7 +9,8 @@ This guide will allow you to self host Deadlock-API locally allowing you to no l
 - Docker Engine
 
 > This requires the docker engine to already be installed on your pc. If it is not you must install it yourself this guide will not go into details. [Docker Desktop Guide Here](https://docs.docker.com/desktop/setup/install/windows-install/). [Docker CLI here](https://docs.docker.com/engine/install/).
-> NOTE: Docker Desktop is the GUI software. It automatically installs the Command Line Interface (CLI) as well. Docker CLI is just the CLI. This guide only uses CLI commands but CLI is only available on Windows Subsystem for Linux (WSL) or Linux (generally) so Docker Desktop is the easiest way to install it for both OSes but the GUI itself won't be used.
+
+> **NOTE:** Docker Desktop is the GUI software. It automatically installs the Command Line Interface (CLI) as well. Docker CLI is just the CLI. This guide only uses CLI commands but CLI is only available on Windows Subsystem for Linux (WSL) or Linux (generally) so Docker Desktop is the easiest way to install it for both OSes but the GUI itself won't be used.
 
 - Docker/Terminal Knowledge
 
@@ -29,7 +30,7 @@ This guide will allow you to self host Deadlock-API locally allowing you to no l
 
 - Extra Resources Available
 
-> The Docker Engine does set up an VM for linux by default it reserves 4gb of RAM for it and its containers. The containers only use ~100-300mb of RAM themselves but as the 4gb are reserved they are not available for the PC to use even if actively not in use. Due to this if you do not have extra RAM available it's unrecommended to self-host deadlock-api.
+> The Docker Engine does set up an VM for linux by default it reserves ~4gb of RAM for it and its containers. The containers only use ~100-300mb of RAM themselves but as the 4gb are reserved they are not available for the PC to use even if actively not in use. Due to this if you do not have extra RAM available it's unrecommended to self-host deadlock-api.
 
 ---
 
@@ -43,9 +44,12 @@ Within a terminal navigate to where deadlock-api-compose.yml and api.env are dow
 
 ### Step 2 - Run a few commands in terminal in order
 
-`docker compose -f deadlock-api-compose.yml up -d` This creates the docker
+`docker compose -f deadlock-api-compose.yml up -d` This creates the 4 needed containers.
+
 `docker ps -a -f "name=deadlockapi"` This should list 4 containers. All should begin with "deadlockapi-" and it should be api-1, redis-1, clickhouse-1, and postgres-1. It should show that api-1 has the status of Exited (1) while the rest are healthy. Its exited because theres a missing user account it needs so the next commands make the user.
+
 `docker exec -it deadlockapi-clickhouse-1 clickhouse-client` This enters clickhouse software on the clickhouse container for the next 2 commands.
+
 `CREATE USER IF NOT EXISTS api_readonly_user IDENTIFIED BY 'localrestrictedpw';` This is executed within the container. Its creating a user called "api_readonly_user" with a password of "localrestrictedpw". After it is done it should say something like the following.
 
 ```sql
@@ -59,7 +63,9 @@ Ok.
 ```
 
 `GRANT SELECT ON default.* TO api_readonly_user;` Gives permissions to read the databases to the user we just created. Respone should be similar to above just with the "GRANT" command instead of "CREATE".
+
 `exit` Just exits the container and should be back to a regular terminal.
+
 `docker restart deadlockapi-api-1` This restarts the API specifically as it needs to be restarted to realize that clickhouse is now set-up properly.
 
 ### Step 3 - Thats it
@@ -80,12 +86,15 @@ Open a terminal thats navigated to where the compose.yml is.
 
 ### Step 2 - Start the Containers
 
-`docker compose -f deadlock-api-compose.yml start` This just starts the container. **MAKE SURE CONTAINERS ARE ALL STARTED PRIOR TO NEXT STEP**.
+`docker compose -f deadlock-api-compose.yml start` This just starts the container. 
+
+**Make sure all containers are started up properly before next step**.
 
 ### Step 3 - Run the local-deadlock-api-ingest & deadlock-api-ingest
 
 Open 2 more Terminal sessions. Run the local-ingest and the standard ingest in those terminals.
-*Why run in terminal?* Technically you don't need to its just if you do you can see if any errors happen in the logs as well you can just close the terminals to stop them form ingesting otherwise you have to open task manager to kill them (on Windows idk about Linux).
+
+*Why run in terminal?* Technically you don't need to its just if you do you can see if any errors happen in the logs as well you can just close the terminals to stop them from ingesting otherwise you have to open task manager to kill them (on Windows idk about Linux).
 
 #### Windows
 
@@ -96,7 +105,8 @@ run `./deadlock-api-ingest-windows-latest.exe` in the other terminal. (Standard 
 #### Linux
 
 -- TODO: Put real instructions here.
-Idk linux just run both.
+
+I don't know how Linux desktop environment is I've only used CLI for servers just run both.
 
 ### Step 4 - Stopping
 
