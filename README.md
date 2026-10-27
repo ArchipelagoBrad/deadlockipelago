@@ -205,8 +205,9 @@ For Archipelago docs, see the [Archipelago documentation](https://github.com/Arc
 
 ## Credits
 
-- **GreenJ/GreenestJ:** Code maintenence & Poptracker.
+- **GreenJ/GreenestJ:** Code maintenence.
 - **ArchipelagoBrad:** Archipelago client integration & logic
+- **Bohrealis:** Docker Self Hosting Write Up. (Used as a starting point for our own integration and guides.
 - **Manuel Hexe:** Developing the [unofficial Deadlock API](https://deadlock-api.com/) ([Please support him here!](https://www.patreon.com/manuelhexe))
 
 ---
