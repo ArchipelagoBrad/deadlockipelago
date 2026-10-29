@@ -99,6 +99,9 @@ Open 2 more Terminal sessions. Run the local-ingest and the standard ingest in t
 #### Windows
 
 Navigate in terminal to where the exes are located.
+
+> This requires the Terminal software which is automatically included and the default CLI software on Windows 11. For Windows 10 you need to install terminal from the [Microsoft Store](https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-US&gl=US). These commands do not work on Win 10's native powershell and command prompt CLIs (for some reason).
+
 run `./local-deadlock-api-ingest-windows-X.X.X.exe` in the terminal. (X.X.X will be version number)
 run `./deadlock-api-ingest-windows-latest.exe` in the other terminal. (Standard doesn't have version number in the exe's name)
 
